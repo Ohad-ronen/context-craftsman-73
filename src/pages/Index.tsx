@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useExperiments } from '@/hooks/useExperiments';
-import { Experiment, ExperimentFormData } from '@/types/experiment';
+import { useExperiments, ExperimentFormData } from '@/hooks/useExperiments';
 import { Header } from '@/components/Header';
 import { ExperimentCard } from '@/components/ExperimentCard';
 import { ExperimentForm } from '@/components/ExperimentForm';
 import { ExperimentDetail } from '@/components/ExperimentDetail';
+import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -19,12 +19,14 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
+type ViewMode = 'cards' | 'table';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment } = useExperiments();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -49,34 +51,40 @@ const Index = () => {
     setView('list');
   };
 
-  const handleSubmit = (data: ExperimentFormData) => {
+  const handleSubmit = async (data: ExperimentFormData) => {
     if (view === 'edit' && selectedId) {
-      updateExperiment(selectedId, data);
-      toast({
-        title: "Experiment updated",
-        description: "Your changes have been saved.",
-      });
-      setView('detail');
+      const updated = await updateExperiment(selectedId, data);
+      if (updated) {
+        toast({
+          title: "Experiment updated",
+          description: "Your changes have been saved.",
+        });
+        setView('detail');
+      }
     } else {
-      const newExp = addExperiment(data);
-      toast({
-        title: "Experiment created",
-        description: "Your experiment has been saved.",
-      });
-      setSelectedId(newExp.id);
-      setView('detail');
+      const newExp = await addExperiment(data);
+      if (newExp) {
+        toast({
+          title: "Experiment created",
+          description: "Your experiment has been saved.",
+        });
+        setSelectedId(newExp.id);
+        setView('detail');
+      }
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedId) {
-      deleteExperiment(selectedId);
-      toast({
-        title: "Experiment deleted",
-        description: "The experiment has been removed.",
-      });
-      setDeleteDialogOpen(false);
-      handleBack();
+      const success = await deleteExperiment(selectedId);
+      if (success) {
+        toast({
+          title: "Experiment deleted",
+          description: "The experiment has been removed.",
+        });
+        setDeleteDialogOpen(false);
+        handleBack();
+      }
     }
   };
 
@@ -90,13 +98,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onNewExperiment={handleNewExperiment} experimentCount={experiments.length} />
+      <Header 
+        onNewExperiment={handleNewExperiment} 
+        experimentCount={experiments.length}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
       
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
           <>
             {experiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
+            ) : viewMode === 'table' ? (
+              <ExperimentsTable 
+                experiments={experiments}
+                onViewExperiment={handleViewExperiment}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {experiments.map((experiment, index) => (
@@ -118,7 +136,18 @@ const Index = () => {
               {view === 'create' ? 'New Experiment' : 'Edit Experiment'}
             </h2>
             <ExperimentForm
-              initialData={view === 'edit' ? selectedExperiment : undefined}
+              initialData={view === 'edit' ? {
+                name: selectedExperiment?.name || '',
+                description: selectedExperiment?.description || '',
+                raw_data_sources: selectedExperiment?.raw_data_sources || '',
+                extracted_context: selectedExperiment?.extracted_context || '',
+                prompt: selectedExperiment?.prompt || '',
+                full_injection: selectedExperiment?.full_injection || '',
+                output: selectedExperiment?.output || '',
+                rating: selectedExperiment?.rating || undefined,
+                notes: selectedExperiment?.notes || '',
+                status: selectedExperiment?.status || 'draft',
+              } : undefined}
               onSubmit={handleSubmit}
               onCancel={handleBack}
               isEditing={view === 'edit'}
