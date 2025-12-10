@@ -6,6 +6,7 @@ import { ExperimentForm } from '@/components/ExperimentForm';
 import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
+import { CSVImport } from '@/components/CSVImport';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -96,6 +97,12 @@ const Index = () => {
     );
   }
 
+  const handleCSVImport = async (data: ExperimentFormData[]) => {
+    for (const exp of data) {
+      await addExperiment(exp);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
@@ -103,6 +110,7 @@ const Index = () => {
         experimentCount={experiments.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        csvImport={<CSVImport onImport={handleCSVImport} />}
       />
       
       <main className="container mx-auto px-6 py-8">
