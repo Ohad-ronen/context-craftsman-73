@@ -1,4 +1,4 @@
-import { Experiment } from '@/types/experiment';
+import { Experiment } from '@/hooks/useExperiments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Clock, FileText } from 'lucide-react';
@@ -43,7 +43,7 @@ export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
-            <span>{formatDistanceToNow(experiment.updatedAt, { addSuffix: true })}</span>
+            <span>{formatDistanceToNow(new Date(experiment.updated_at), { addSuffix: true })}</span>
           </div>
           {experiment.rating && (
             <div className="flex items-center gap-1.5">

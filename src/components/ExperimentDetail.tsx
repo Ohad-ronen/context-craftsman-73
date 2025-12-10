@@ -1,4 +1,4 @@
-import { Experiment } from '@/types/experiment';
+import { Experiment } from '@/hooks/useExperiments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,10 @@ const statusColors = {
 };
 
 const sections = [
-  { key: 'rawDataSources', label: 'Raw Data Sources', icon: Database, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
-  { key: 'extractedContext', label: 'Extracted Context', icon: Brain, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
+  { key: 'raw_data_sources', label: 'Raw Data Sources', icon: Database, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
+  { key: 'extracted_context', label: 'Extracted Context', icon: Brain, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
   { key: 'prompt', label: 'Prompt Template', icon: MessageSquare, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
-  { key: 'fullInjection', label: 'Full Prompt + Context', icon: Sparkles, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'full_injection', label: 'Full Prompt + Context', icon: Sparkles, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
   { key: 'output', label: 'Generated Output', icon: FileOutput, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
 ];
 
@@ -44,7 +44,7 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete }: Exper
             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
-                <span>Created {format(experiment.createdAt, 'MMM d, yyyy')}</span>
+                <span>Created {format(new Date(experiment.created_at), 'MMM d, yyyy')}</span>
               </div>
               {experiment.rating && (
                 <div className="flex items-center gap-1.5">

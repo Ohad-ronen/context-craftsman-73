@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExperimentFormData } from '@/types/experiment';
+import { ExperimentFormData } from '@/hooks/useExperiments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,10 +19,10 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
   const [formData, setFormData] = useState<ExperimentFormData>({
     name: initialData?.name || '',
     description: initialData?.description || '',
-    rawDataSources: initialData?.rawDataSources || '',
-    extractedContext: initialData?.extractedContext || '',
+    raw_data_sources: initialData?.raw_data_sources || '',
+    extracted_context: initialData?.extracted_context || '',
     prompt: initialData?.prompt || '',
-    fullInjection: initialData?.fullInjection || '',
+    full_injection: initialData?.full_injection || '',
     output: initialData?.output || '',
     rating: initialData?.rating,
     notes: initialData?.notes || '',
@@ -41,10 +41,10 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
   };
 
   const steps = [
-    { key: 'rawDataSources', label: 'Raw Data Sources', step: 'input' as const, icon: Database, placeholder: 'Enter your raw data sources (APIs, databases, files, etc.)' },
-    { key: 'extractedContext', label: 'Extracted Context', step: 'context' as const, icon: Brain, placeholder: 'What context did you extract from the raw data?' },
+    { key: 'raw_data_sources', label: 'Raw Data Sources', step: 'input' as const, icon: Database, placeholder: 'Enter your raw data sources (APIs, databases, files, etc.)' },
+    { key: 'extracted_context', label: 'Extracted Context', step: 'context' as const, icon: Brain, placeholder: 'What context did you extract from the raw data?' },
     { key: 'prompt', label: 'Prompt', step: 'prompt' as const, icon: MessageSquare, placeholder: 'Enter the prompt template you used' },
-    { key: 'fullInjection', label: 'Full Prompt + Context', step: 'prompt' as const, icon: Sparkles, placeholder: 'The complete prompt with context injected' },
+    { key: 'full_injection', label: 'Full Prompt + Context', step: 'prompt' as const, icon: Sparkles, placeholder: 'The complete prompt with context injected' },
     { key: 'output', label: 'Output', step: 'output' as const, icon: FileOutput, placeholder: 'The generated output from the agent' },
   ];
 
