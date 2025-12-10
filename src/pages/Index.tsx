@@ -162,6 +162,9 @@ const Index = () => {
               onBack={handleBack}
               onEdit={handleEditExperiment}
               onDelete={() => setDeleteDialogOpen(true)}
+              onUpdate={async (id, data) => {
+                await updateExperiment(id, data);
+              }}
             />
           </div>
         )}

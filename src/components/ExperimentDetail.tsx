@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit, Trash2, Star, Clock, Database, Brain, MessageSquare, Sparkles, FileOutput, ArrowDown } from 'lucide-react';
+import { AIEvaluation } from './AIEvaluation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -11,6 +12,7 @@ interface ExperimentDetailProps {
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onUpdate?: (id: string, data: { rating?: number; notes?: string }) => Promise<void>;
 }
 
 const statusColors = {
@@ -27,7 +29,12 @@ const sections = [
   { key: 'output', label: 'Generated Output', icon: FileOutput, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
 ];
 
-export function ExperimentDetail({ experiment, onBack, onEdit, onDelete }: ExperimentDetailProps) {
+export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdate }: ExperimentDetailProps) {
+  const handleEvaluationComplete = async (score: number, notes: string) => {
+    if (onUpdate) {
+      await onUpdate(experiment.id, { rating: score, notes });
+    }
+  };
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -103,9 +110,17 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete }: Exper
         })}
       </div>
 
+      {/* AI Evaluation */}
+      <AIEvaluation
+        prompt={experiment.prompt}
+        output={experiment.output}
+        context={experiment.extracted_context}
+        onEvaluationComplete={handleEvaluationComplete}
+      />
+
       {/* Evaluation Notes */}
       {experiment.notes && (
-        <Card className="glass-card border-l-4 border-l-primary">
+        <Card className="glass-card border-l-4 border-l-primary/50">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-3 text-base">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -115,9 +130,9 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete }: Exper
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans">
               {experiment.notes}
-            </p>
+            </pre>
           </CardContent>
         </Card>
       )}
