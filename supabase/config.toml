@@ -2,3 +2,6 @@ project_id = "hzpjxqkbnfbvzcarttjb"
 
 [functions.evaluate-experiment]
 verify_jwt = false
+
+[functions.analyze-experiments]
+verify_jwt = false

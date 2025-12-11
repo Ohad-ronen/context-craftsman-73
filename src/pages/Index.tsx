@@ -7,6 +7,7 @@ import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { CSVImport } from '@/components/CSVImport';
+import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [analyzerOpen, setAnalyzerOpen] = useState(false);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
 
@@ -111,6 +113,13 @@ const Index = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         csvImport={<CSVImport onImport={handleCSVImport} />}
+        onOpenAnalyzer={() => setAnalyzerOpen(true)}
+      />
+      
+      <ExperimentAnalyzer
+        experiments={experiments}
+        isOpen={analyzerOpen}
+        onClose={() => setAnalyzerOpen(false)}
       />
       
       <main className="container mx-auto px-6 py-8">
