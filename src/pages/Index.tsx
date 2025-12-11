@@ -7,6 +7,7 @@ import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { CSVImport } from '@/components/CSVImport';
+import { GoogleSheetsImport } from '@/components/GoogleSheetsImport';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -113,6 +114,7 @@ const Index = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         csvImport={<CSVImport onImport={handleCSVImport} />}
+        googleSheetsImport={<GoogleSheetsImport onImport={handleCSVImport} />}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
       />
       

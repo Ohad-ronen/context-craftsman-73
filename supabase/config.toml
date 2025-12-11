@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.analyze-experiments]
 verify_jwt = false
+
+[functions.fetch-google-sheet]
+verify_jwt = false
