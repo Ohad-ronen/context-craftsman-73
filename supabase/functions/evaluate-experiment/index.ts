@@ -46,7 +46,7 @@ Provide your evaluation in the following JSON format only, no other text:
 **Context Provided:**
 ${context || 'No context provided'}
 
-**Prompt Given:**
+**Agentic Prompt Given:**
 ${prompt}
 
 **AI Output:**

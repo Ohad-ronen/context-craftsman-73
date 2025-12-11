@@ -25,7 +25,7 @@ serve(async (req) => {
     const systemPrompt = `You are an expert AI research analyst specializing in prompt engineering and AI output quality. Your task is to analyze multiple AI experiments and identify patterns that lead to better outputs.
 
 Analyze the provided experiments and identify:
-1. **Context Patterns**: What types of context (raw data, extracted info) correlate with higher ratings?
+1. **Context Patterns**: What types of context (board data, search results) correlate with higher ratings?
 2. **Prompt Patterns**: What prompt structures, lengths, or styles produce better results?
 3. **Success Factors**: What common elements appear in high-rated experiments?
 4. **Improvement Areas**: What patterns appear in lower-rated experiments that could be improved?
@@ -59,10 +59,13 @@ Provide your analysis in the following JSON format only, no other text:
     const experimentSummaries = experiments.map((exp: any, index: number) => `
 --- Experiment ${index + 1}: "${exp.name}" ---
 Rating: ${exp.rating || 'Not rated'}/5
-Status: ${exp.status}
-Raw Data Sources: ${exp.raw_data_sources?.substring(0, 500) || 'None'}
-Extracted Context: ${exp.extracted_context?.substring(0, 500) || 'None'}
-Prompt: ${exp.prompt?.substring(0, 500) || 'None'}
+Goal: ${exp.goal?.substring(0, 300) || 'None'}
+Mission: ${exp.mission?.substring(0, 300) || 'None'}
+Board: ${exp.board_name || 'None'}
+Board Context: ${exp.board_pulled_context?.substring(0, 500) || 'None'}
+Search Terms: ${exp.search_terms || 'None'}
+Search Context: ${exp.search_context?.substring(0, 500) || 'None'}
+Agentic Prompt: ${exp.agentic_prompt?.substring(0, 500) || 'None'}
 Output Preview: ${exp.output?.substring(0, 300) || 'None'}
 Notes: ${exp.notes?.substring(0, 200) || 'None'}
 `).join('\n');

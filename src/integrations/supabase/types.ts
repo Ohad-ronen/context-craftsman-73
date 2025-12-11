@@ -16,48 +16,63 @@ export type Database = {
     Tables: {
       experiments: {
         Row: {
+          agentic_prompt: string
+          board_full_context: string
+          board_name: string
+          board_pulled_context: string
           created_at: string
-          description: string | null
-          extracted_context: string
-          full_injection: string
+          desired: string
+          example: string
+          goal: string
           id: string
+          mission: string
           name: string
           notes: string | null
           output: string
-          prompt: string
           rating: number | null
-          raw_data_sources: string
-          status: string
+          rules: string
+          search_context: string
+          search_terms: string
           updated_at: string
         }
         Insert: {
+          agentic_prompt?: string
+          board_full_context?: string
+          board_name?: string
+          board_pulled_context?: string
           created_at?: string
-          description?: string | null
-          extracted_context?: string
-          full_injection?: string
+          desired?: string
+          example?: string
+          goal?: string
           id?: string
+          mission?: string
           name: string
           notes?: string | null
           output?: string
-          prompt?: string
           rating?: number | null
-          raw_data_sources?: string
-          status?: string
+          rules?: string
+          search_context?: string
+          search_terms?: string
           updated_at?: string
         }
         Update: {
+          agentic_prompt?: string
+          board_full_context?: string
+          board_name?: string
+          board_pulled_context?: string
           created_at?: string
-          description?: string | null
-          extracted_context?: string
-          full_injection?: string
+          desired?: string
+          example?: string
+          goal?: string
           id?: string
+          mission?: string
           name?: string
           notes?: string | null
           output?: string
-          prompt?: string
           rating?: number | null
-          raw_data_sources?: string
-          status?: string
+          rules?: string
+          search_context?: string
+          search_terms?: string
           updated_at?: string
         }
         Relationships: []

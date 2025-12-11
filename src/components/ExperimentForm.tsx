@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { StepIndicator } from './StepIndicator';
 import { Card, CardContent } from '@/components/ui/card';
-import { Database, Brain, MessageSquare, Sparkles, FileOutput, Save, ArrowDown } from 'lucide-react';
+import { Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Save, ArrowDown } from 'lucide-react';
 
 interface ExperimentFormProps {
   initialData?: Partial<ExperimentFormData>;
@@ -18,15 +17,20 @@ interface ExperimentFormProps {
 export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = false }: ExperimentFormProps) {
   const [formData, setFormData] = useState<ExperimentFormData>({
     name: initialData?.name || '',
-    description: initialData?.description || '',
-    raw_data_sources: initialData?.raw_data_sources || '',
-    extracted_context: initialData?.extracted_context || '',
-    prompt: initialData?.prompt || '',
-    full_injection: initialData?.full_injection || '',
+    goal: initialData?.goal || '',
+    mission: initialData?.mission || '',
+    example: initialData?.example || '',
+    desired: initialData?.desired || '',
+    rules: initialData?.rules || '',
+    board_name: initialData?.board_name || '',
+    board_full_context: initialData?.board_full_context || '',
+    board_pulled_context: initialData?.board_pulled_context || '',
+    search_terms: initialData?.search_terms || '',
+    search_context: initialData?.search_context || '',
+    agentic_prompt: initialData?.agentic_prompt || '',
     output: initialData?.output || '',
     rating: initialData?.rating,
     notes: initialData?.notes || '',
-    status: initialData?.status || 'draft',
   });
 
   const [activeStep, setActiveStep] = useState<number>(0);
@@ -41,36 +45,32 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
   };
 
   const steps = [
-    { key: 'raw_data_sources', label: 'Raw Data Sources', step: 'input' as const, icon: Database, placeholder: 'Enter your raw data sources (APIs, databases, files, etc.)' },
-    { key: 'extracted_context', label: 'Extracted Context', step: 'context' as const, icon: Brain, placeholder: 'What context did you extract from the raw data?' },
-    { key: 'prompt', label: 'Prompt', step: 'prompt' as const, icon: MessageSquare, placeholder: 'Enter the prompt template you used' },
-    { key: 'full_injection', label: 'Full Prompt + Context', step: 'prompt' as const, icon: Sparkles, placeholder: 'The complete prompt with context injected' },
-    { key: 'output', label: 'Output', step: 'output' as const, icon: FileOutput, placeholder: 'The generated output from the agent' },
+    { key: 'goal', label: 'The Goal', icon: Target, placeholder: 'What is the goal of this experiment?' },
+    { key: 'mission', label: 'The Mission', icon: Compass, placeholder: 'What is the mission?' },
+    { key: 'example', label: 'The Example', icon: BookOpen, placeholder: 'Provide an example' },
+    { key: 'desired', label: 'Desired', icon: Sparkles, placeholder: 'What is the desired outcome?' },
+    { key: 'rules', label: 'Rules', icon: ScrollText, placeholder: 'What rules should be followed?' },
+    { key: 'board_name', label: 'Board Name', icon: Layout, placeholder: 'Enter the board name' },
+    { key: 'board_full_context', label: 'Board Full Context', icon: Database, placeholder: 'Full context from the board' },
+    { key: 'board_pulled_context', label: 'Board Pulled Context', icon: Database, placeholder: 'Pulled context from the board' },
+    { key: 'search_terms', label: 'Search Terms', icon: Search, placeholder: 'Enter search terms' },
+    { key: 'search_context', label: 'Search Context', icon: Search, placeholder: 'Context from search results' },
+    { key: 'agentic_prompt', label: 'The Agentic Prompt', icon: Brain, placeholder: 'Enter the agentic prompt' },
+    { key: 'output', label: 'The Output', icon: FileOutput, placeholder: 'The generated output from the agent' },
   ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Header */}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium">Experiment Name</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            placeholder="Give your experiment a memorable name"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description" className="text-sm font-medium">Description (optional)</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="Brief description of what you're testing"
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-medium">Experiment Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+          placeholder="Give your experiment a memorable name"
+          required
+        />
       </div>
 
       {/* Flow Steps */}
@@ -78,7 +78,7 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
         {steps.map((step, index) => {
           const Icon = step.icon;
           return (
-            <div key={step.key} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+            <div key={step.key} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
               <Card 
                 className={`glass-card transition-all duration-300 ${activeStep === index ? 'ring-2 ring-primary/50' : ''}`}
                 onFocus={() => setActiveStep(index)}
@@ -88,13 +88,13 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
                     <div className="p-2 rounded-lg bg-secondary">
                       <Icon className="w-4 h-4 text-primary" />
                     </div>
-                    <StepIndicator step={step.step} label={step.label} isActive={activeStep === index} />
+                    <Label className="text-sm font-medium">{step.label}</Label>
                   </div>
                   <Textarea
                     value={formData[step.key as keyof ExperimentFormData] as string}
                     onChange={(e) => handleChange(step.key as keyof ExperimentFormData, e.target.value)}
                     placeholder={step.placeholder}
-                    className="min-h-[150px]"
+                    className="min-h-[100px]"
                     onFocus={() => setActiveStep(index)}
                   />
                 </CardContent>
@@ -118,7 +118,7 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
             </span>
             Evaluation
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="rating">Rating (1-5)</Label>
               <Input
@@ -132,28 +132,15 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <select
-                id="status"
-                value={formData.status}
-                onChange={(e) => handleChange('status', e.target.value)}
-                className="flex h-11 w-full rounded-lg border border-border bg-secondary/50 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="draft">Draft</option>
-                <option value="evaluating">Evaluating</option>
-                <option value="completed">Completed</option>
-              </select>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                placeholder="Any observations, learnings, or next steps..."
+                className="min-h-[100px]"
+              />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              placeholder="Any observations, learnings, or next steps..."
-              className="min-h-[100px]"
-            />
           </div>
         </CardContent>
       </Card>
