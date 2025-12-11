@@ -77,12 +77,19 @@ export function AIEvaluation({ prompt, output, context, onEvaluationComplete }: 
       // Create notes from evaluation
       const notes = `AI Evaluation Summary:\n${data.evaluation.summary}\n\nSuggestions:\n${data.evaluation.suggestions.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}`;
       
-      onEvaluationComplete?.(data.evaluation.overallScore, notes);
-
-      toast({
-        title: 'Evaluation complete',
-        description: `Overall score: ${data.evaluation.overallScore}/5`,
-      });
+      // Save evaluation results to backend
+      if (onEvaluationComplete) {
+        await onEvaluationComplete(data.evaluation.overallScore, notes);
+        toast({
+          title: 'Evaluation complete & saved',
+          description: `Overall score: ${data.evaluation.overallScore}/5 - Results saved to database.`,
+        });
+      } else {
+        toast({
+          title: 'Evaluation complete',
+          description: `Overall score: ${data.evaluation.overallScore}/5`,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to run evaluation';
       setError(message);
