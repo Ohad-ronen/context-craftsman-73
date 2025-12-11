@@ -60,10 +60,15 @@ serve(async (req) => {
     const headers = parseCSVLine(lines[0]);
     console.log('Headers:', headers);
 
-    // Parse data rows
+    // Parse data rows, filtering out empty rows
     const rows: Record<string, string>[] = [];
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i]);
+      
+      // Skip rows where all values are empty
+      const hasData = values.some(v => v.trim() !== '');
+      if (!hasData) continue;
+      
       const row: Record<string, string> = {};
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
