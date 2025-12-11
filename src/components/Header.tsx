@@ -8,10 +8,11 @@ interface HeaderProps {
   viewMode: 'cards' | 'table';
   onViewModeChange: (mode: 'cards' | 'table') => void;
   csvImport?: ReactNode;
+  googleSheetsImport?: ReactNode;
   onOpenAnalyzer?: () => void;
 }
 
-export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeChange, csvImport, onOpenAnalyzer }: HeaderProps) {
+export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeChange, csvImport, googleSheetsImport, onOpenAnalyzer }: HeaderProps) {
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -58,6 +59,8 @@ export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeC
             )}
             
             {csvImport}
+            
+            {googleSheetsImport}
             
             <Button onClick={onNewExperiment} className="gap-2">
               <Plus className="w-4 h-4" />
