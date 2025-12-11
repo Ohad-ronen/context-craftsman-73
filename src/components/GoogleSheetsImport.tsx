@@ -70,12 +70,32 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
 
       setSheetData(data);
       
-      // Auto-map columns with matching names
+      // Auto-map columns with matching names (handles common variations and typos)
+      const fieldMappings: Record<string, string[]> = {
+        name: ['name', 'id', 'experiment name', 'title'],
+        goal: ['goal', 'the goal', 'the goa'],
+        mission: ['mission', 'the mission', 'the mssion', 'mssion'],
+        example: ['example', 'the example', 'the example desired', 'example desired'],
+        desired: ['desired', 'the desired'],
+        rules: ['rules', 'the rules'],
+        board_name: ['board name', 'board_name', 'boardname'],
+        board_full_context: ['board full context', 'board_full_context', 'boardfullcontext', 'full context'],
+        board_pulled_context: ['board pulled context', 'board_pulled_context', 'boardpulledcontext', 'pulled context'],
+        search_terms: ['search terms', 'search_terms', 'searchterms', 'serch terms', 'serchterms'],
+        search_context: ['search context', 'search_context', 'searchcontext', 'search contetext', 'serch contetext'],
+        agentic_prompt: ['agentic prompt', 'agentic_prompt', 'agenticprompt', 'the agentic prompt', 'prompt'],
+        output: ['output', 'the output', 'result'],
+        rating: ['rating', 'score'],
+        notes: ['notes', 'note', 'comments'],
+      };
+      
       const autoMapping: Record<string, string> = {};
       ALL_FIELDS.forEach(field => {
-        const matchingHeader = data.headers.find(
-          (h: string) => h.toLowerCase().replace(/[_\s-]/g, '') === field.toLowerCase().replace(/[_\s-]/g, '')
-        );
+        const variations = fieldMappings[field] || [field];
+        const matchingHeader = data.headers.find((h: string) => {
+          const normalizedHeader = h.toLowerCase().trim();
+          return variations.some(v => normalizedHeader === v.toLowerCase());
+        });
         if (matchingHeader) {
           autoMapping[field] = matchingHeader;
         }
