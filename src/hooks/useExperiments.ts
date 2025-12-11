@@ -187,6 +187,58 @@ export function useExperiments() {
     return experiments.find(exp => exp.id === id);
   };
 
+  const createExperimentsRowByRow = async (
+    data: ExperimentFormData[],
+    onProgress?: (current: number, total: number) => void
+  ): Promise<{ success: number; failed: number }> => {
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const exp = data[i];
+      try {
+        const { error } = await supabase
+          .from('experiments')
+          .insert({
+            name: exp.name,
+            goal: exp.goal,
+            mission: exp.mission,
+            example: exp.example,
+            desired: exp.desired,
+            rules: exp.rules,
+            board_name: exp.board_name,
+            board_full_context: exp.board_full_context,
+            board_pulled_context: exp.board_pulled_context,
+            search_terms: exp.search_terms,
+            search_context: exp.search_context,
+            agentic_prompt: exp.agentic_prompt,
+            output: exp.output,
+            rating: exp.rating || null,
+            notes: exp.notes || null,
+          });
+
+        if (error) {
+          console.error(`Error inserting row ${i + 1}:`, error);
+          failed++;
+        } else {
+          success++;
+        }
+      } catch (error) {
+        console.error(`Error inserting row ${i + 1}:`, error);
+        failed++;
+      }
+
+      if (onProgress) {
+        onProgress(i + 1, data.length);
+      }
+    }
+
+    // Refetch after all imports
+    await fetchExperiments();
+
+    return { success, failed };
+  };
+
   return {
     experiments,
     isLoading,
@@ -194,6 +246,7 @@ export function useExperiments() {
     updateExperiment,
     deleteExperiment,
     getExperiment,
+    createExperimentsRowByRow,
     refetch: fetchExperiments,
   };
 }

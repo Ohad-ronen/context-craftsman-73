@@ -32,7 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ExperimentFormData } from "@/hooks/useExperiments";
 
 interface GoogleSheetsImportProps {
-  onImport: (data: ExperimentFormData[]) => Promise<void>;
+  onImport: (data: ExperimentFormData[], onProgress?: (current: number, total: number) => void) => Promise<{ success: number; failed: number }>;
 }
 
 const REQUIRED_FIELDS = ['name'];
@@ -46,6 +46,7 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
   const [sheetData, setSheetData] = useState<{ headers: string[]; rows: Record<string, string>[] } | null>(null);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [step, setStep] = useState<'url' | 'mapping' | 'preview'>('url');
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
   const { toast } = useToast();
 
   const handleFetchSheet = async () => {
@@ -134,6 +135,7 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
     }
 
     setIsLoading(true);
+    setImportProgress({ current: 0, total: sheetData.rows.length });
 
     try {
       const experiments: ExperimentFormData[] = sheetData.rows.map(row => {
@@ -164,11 +166,13 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
         return exp;
       }).filter(exp => exp.name); // Filter out rows without a name
 
-      await onImport(experiments);
+      const result = await onImport(experiments, (current, total) => {
+        setImportProgress({ current, total });
+      });
 
       toast({
-        title: "Import successful",
-        description: `Imported ${experiments.length} experiments from Google Sheets`,
+        title: "Import complete",
+        description: `Successfully imported ${result.success} experiments${result.failed > 0 ? ` (${result.failed} failed)` : ''}`,
       });
 
       // Reset state
@@ -177,6 +181,7 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
       setSheetData(null);
       setColumnMapping({});
       setStep('url');
+      setImportProgress(null);
     } catch (error: any) {
       console.error('Error importing:', error);
       toast({
@@ -186,6 +191,7 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
       });
     } finally {
       setIsLoading(false);
+      setImportProgress(null);
     }
   };
 
@@ -357,7 +363,9 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
+                    {importProgress 
+                      ? `Importing ${importProgress.current} of ${importProgress.total}...`
+                      : 'Importing...'}
                   </>
                 ) : (
                   `Import ${sheetData.rows.length} Experiments`
