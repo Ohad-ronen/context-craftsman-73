@@ -93,13 +93,7 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {section.key === 'output' ? (
-                    <JsonViewer content={content} />
-                  ) : (
-                    <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/30 rounded-lg p-4 overflow-x-auto">
-                      {content}
-                    </pre>
-                  )}
+                  <JsonViewer content={content} />
                 </CardContent>
               </Card>
               {index < sections.length - 1 && content && (
