@@ -276,14 +276,17 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
                     {field.replace(/_/g, ' ')} (optional)
                   </Label>
                   <Select
-                    value={columnMapping[field] || ''}
-                    onValueChange={(value) => setColumnMapping(prev => ({ ...prev, [field]: value }))}
+                    value={columnMapping[field] || '__none__'}
+                    onValueChange={(value) => setColumnMapping(prev => ({ 
+                      ...prev, 
+                      [field]: value === '__none__' ? '' : value 
+                    }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select column" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {sheetData.headers.map(header => (
                         <SelectItem key={header} value={header}>
                           {header}
