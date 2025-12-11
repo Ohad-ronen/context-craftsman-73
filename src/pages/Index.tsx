@@ -25,7 +25,7 @@ type View = 'list' | 'create' | 'detail' | 'edit';
 type ViewMode = 'cards' | 'table';
 
 const Index = () => {
-  const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment } = useExperiments();
+  const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
@@ -106,6 +106,13 @@ const Index = () => {
     }
   };
 
+  const handleGoogleSheetsImport = async (
+    data: ExperimentFormData[],
+    onProgress?: (current: number, total: number) => void
+  ): Promise<{ success: number; failed: number }> => {
+    return await createExperimentsRowByRow(data, onProgress);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
@@ -114,7 +121,7 @@ const Index = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         csvImport={<CSVImport onImport={handleCSVImport} />}
-        googleSheetsImport={<GoogleSheetsImport onImport={handleCSVImport} />}
+        googleSheetsImport={<GoogleSheetsImport onImport={handleGoogleSheetsImport} />}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
       />
       
