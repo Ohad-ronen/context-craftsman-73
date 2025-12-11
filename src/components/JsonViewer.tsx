@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -8,9 +8,6 @@ interface JsonViewerProps {
 }
 
 export function JsonViewer({ content }: JsonViewerProps) {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['root']));
-  const [copied, setCopied] = useState(false);
-
   // Try to parse as JSON
   let parsedJson: unknown = null;
   let isValidJson = false;
@@ -21,6 +18,26 @@ export function JsonViewer({ content }: JsonViewerProps) {
   } catch {
     isValidJson = false;
   }
+
+  // Collect all paths for expand all by default
+  const allPaths = useMemo(() => {
+    const paths = new Set<string>();
+    const collectPaths = (obj: unknown, path: string) => {
+      paths.add(path);
+      if (Array.isArray(obj)) {
+        obj.forEach((_, i) => collectPaths(obj[i], `${path}[${i}]`));
+      } else if (obj && typeof obj === 'object') {
+        Object.keys(obj).forEach(key => collectPaths((obj as Record<string, unknown>)[key], `${path}.${key}`));
+      }
+    };
+    if (isValidJson) {
+      collectPaths(parsedJson, 'root');
+    }
+    return paths;
+  }, [content, isValidJson]);
+
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(allPaths);
+  const [copied, setCopied] = useState(false);
 
   const toggleExpand = (path: string) => {
     setExpandedItems(prev => {
@@ -35,17 +52,7 @@ export function JsonViewer({ content }: JsonViewerProps) {
   };
 
   const expandAll = () => {
-    const allPaths = new Set<string>();
-    const collectPaths = (obj: unknown, path: string) => {
-      allPaths.add(path);
-      if (Array.isArray(obj)) {
-        obj.forEach((_, i) => collectPaths(obj[i], `${path}[${i}]`));
-      } else if (obj && typeof obj === 'object') {
-        Object.keys(obj).forEach(key => collectPaths((obj as Record<string, unknown>)[key], `${path}.${key}`));
-      }
-    };
-    collectPaths(parsedJson, 'root');
-    setExpandedItems(allPaths);
+    setExpandedItems(new Set(allPaths));
   };
 
   const collapseAll = () => {
