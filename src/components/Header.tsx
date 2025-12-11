@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Layers, LayoutGrid, Table2 } from 'lucide-react';
+import { Plus, Layers, LayoutGrid, Table2, Brain } from 'lucide-react';
 
 interface HeaderProps {
   onNewExperiment: () => void;
@@ -8,9 +8,10 @@ interface HeaderProps {
   viewMode: 'cards' | 'table';
   onViewModeChange: (mode: 'cards' | 'table') => void;
   csvImport?: ReactNode;
+  onOpenAnalyzer?: () => void;
 }
 
-export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeChange, csvImport }: HeaderProps) {
+export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeChange, csvImport, onOpenAnalyzer }: HeaderProps) {
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -48,6 +49,13 @@ export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeC
                 <span className="hidden sm:inline">Table</span>
               </Button>
             </div>
+            
+            {onOpenAnalyzer && (
+              <Button variant="outline" onClick={onOpenAnalyzer} className="gap-2">
+                <Brain className="w-4 h-4" />
+                <span className="hidden sm:inline">Insights</span>
+              </Button>
+            )}
             
             {csvImport}
             
