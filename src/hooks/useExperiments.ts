@@ -151,6 +151,12 @@ export function useExperiments() {
         .single();
 
       if (error) throw error;
+      
+      // Immediately update local state for faster UI feedback
+      setExperiments(prev => 
+        prev.map(exp => exp.id === id ? (updated as Experiment) : exp)
+      );
+      
       return updated as Experiment;
     } catch (error) {
       console.error('Error updating experiment:', error);
