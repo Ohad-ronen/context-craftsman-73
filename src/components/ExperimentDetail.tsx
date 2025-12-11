@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
+import { JsonViewer } from './JsonViewer';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -92,9 +93,13 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/30 rounded-lg p-4 overflow-x-auto">
-                    {content}
-                  </pre>
+                  {section.key === 'output' ? (
+                    <JsonViewer content={content} />
+                  ) : (
+                    <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/30 rounded-lg p-4 overflow-x-auto">
+                      {content}
+                    </pre>
+                  )}
                 </CardContent>
               </Card>
               {index < sections.length - 1 && content && (
