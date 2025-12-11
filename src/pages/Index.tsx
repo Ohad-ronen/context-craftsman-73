@@ -157,15 +157,20 @@ const Index = () => {
             <ExperimentForm
               initialData={view === 'edit' ? {
                 name: selectedExperiment?.name || '',
-                description: selectedExperiment?.description || '',
-                raw_data_sources: selectedExperiment?.raw_data_sources || '',
-                extracted_context: selectedExperiment?.extracted_context || '',
-                prompt: selectedExperiment?.prompt || '',
-                full_injection: selectedExperiment?.full_injection || '',
+                goal: selectedExperiment?.goal || '',
+                mission: selectedExperiment?.mission || '',
+                example: selectedExperiment?.example || '',
+                desired: selectedExperiment?.desired || '',
+                rules: selectedExperiment?.rules || '',
+                board_name: selectedExperiment?.board_name || '',
+                board_full_context: selectedExperiment?.board_full_context || '',
+                board_pulled_context: selectedExperiment?.board_pulled_context || '',
+                search_terms: selectedExperiment?.search_terms || '',
+                search_context: selectedExperiment?.search_context || '',
+                agentic_prompt: selectedExperiment?.agentic_prompt || '',
                 output: selectedExperiment?.output || '',
                 rating: selectedExperiment?.rating || undefined,
                 notes: selectedExperiment?.notes || '',
-                status: selectedExperiment?.status || 'draft',
               } : undefined}
               onSubmit={handleSubmit}
               onCancel={handleBack}

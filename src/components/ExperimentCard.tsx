@@ -1,20 +1,12 @@
 import { Experiment } from '@/hooks/useExperiments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Star, Clock, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ExperimentCardProps {
   experiment: Experiment;
   onClick: () => void;
 }
-
-const statusColors = {
-  draft: 'bg-muted text-muted-foreground',
-  completed: 'bg-step-output/20 text-step-output',
-  evaluating: 'bg-step-prompt/20 text-step-prompt',
-};
 
 export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
   return (
@@ -28,15 +20,12 @@ export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
             <CardTitle className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
               {experiment.name}
             </CardTitle>
-            {experiment.description && (
+            {experiment.goal && (
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {experiment.description}
+                {experiment.goal}
               </p>
             )}
           </div>
-          <Badge className={cn("shrink-0", statusColors[experiment.status])}>
-            {experiment.status}
-          </Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -54,7 +43,7 @@ export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
           <div className="flex items-center gap-1.5 ml-auto">
             <FileText className="w-4 h-4" />
             <span className="truncate max-w-[100px]">
-              {experiment.output.substring(0, 30)}...
+              {experiment.output ? experiment.output.substring(0, 30) + '...' : 'No output'}
             </span>
           </div>
         </div>

@@ -5,30 +5,40 @@ import { useToast } from '@/hooks/use-toast';
 export interface Experiment {
   id: string;
   name: string;
-  description: string | null;
-  raw_data_sources: string;
-  extracted_context: string;
-  prompt: string;
-  full_injection: string;
+  goal: string;
+  mission: string;
+  example: string;
+  desired: string;
+  rules: string;
+  board_name: string;
+  board_full_context: string;
+  board_pulled_context: string;
+  search_terms: string;
+  search_context: string;
+  agentic_prompt: string;
   output: string;
   rating: number | null;
   notes: string | null;
-  status: 'draft' | 'completed' | 'evaluating';
   created_at: string;
   updated_at: string;
 }
 
 export interface ExperimentFormData {
   name: string;
-  description?: string;
-  raw_data_sources: string;
-  extracted_context: string;
-  prompt: string;
-  full_injection: string;
+  goal: string;
+  mission: string;
+  example: string;
+  desired: string;
+  rules: string;
+  board_name: string;
+  board_full_context: string;
+  board_pulled_context: string;
+  search_terms: string;
+  search_context: string;
+  agentic_prompt: string;
   output: string;
   rating?: number;
   notes?: string;
-  status: 'draft' | 'completed' | 'evaluating';
 }
 
 export function useExperiments() {
@@ -83,15 +93,20 @@ export function useExperiments() {
         .from('experiments')
         .insert({
           name: data.name,
-          description: data.description || null,
-          raw_data_sources: data.raw_data_sources,
-          extracted_context: data.extracted_context,
-          prompt: data.prompt,
-          full_injection: data.full_injection,
+          goal: data.goal,
+          mission: data.mission,
+          example: data.example,
+          desired: data.desired,
+          rules: data.rules,
+          board_name: data.board_name,
+          board_full_context: data.board_full_context,
+          board_pulled_context: data.board_pulled_context,
+          search_terms: data.search_terms,
+          search_context: data.search_context,
+          agentic_prompt: data.agentic_prompt,
           output: data.output,
           rating: data.rating || null,
           notes: data.notes || null,
-          status: data.status,
         })
         .select()
         .single();
@@ -113,15 +128,20 @@ export function useExperiments() {
     try {
       const updateData: Record<string, unknown> = {};
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.description !== undefined) updateData.description = data.description || null;
-      if (data.raw_data_sources !== undefined) updateData.raw_data_sources = data.raw_data_sources;
-      if (data.extracted_context !== undefined) updateData.extracted_context = data.extracted_context;
-      if (data.prompt !== undefined) updateData.prompt = data.prompt;
-      if (data.full_injection !== undefined) updateData.full_injection = data.full_injection;
+      if (data.goal !== undefined) updateData.goal = data.goal;
+      if (data.mission !== undefined) updateData.mission = data.mission;
+      if (data.example !== undefined) updateData.example = data.example;
+      if (data.desired !== undefined) updateData.desired = data.desired;
+      if (data.rules !== undefined) updateData.rules = data.rules;
+      if (data.board_name !== undefined) updateData.board_name = data.board_name;
+      if (data.board_full_context !== undefined) updateData.board_full_context = data.board_full_context;
+      if (data.board_pulled_context !== undefined) updateData.board_pulled_context = data.board_pulled_context;
+      if (data.search_terms !== undefined) updateData.search_terms = data.search_terms;
+      if (data.search_context !== undefined) updateData.search_context = data.search_context;
+      if (data.agentic_prompt !== undefined) updateData.agentic_prompt = data.agentic_prompt;
       if (data.output !== undefined) updateData.output = data.output;
       if (data.rating !== undefined) updateData.rating = data.rating || null;
       if (data.notes !== undefined) updateData.notes = data.notes || null;
-      if (data.status !== undefined) updateData.status = data.status;
 
       const { data: updated, error } = await supabase
         .from('experiments')

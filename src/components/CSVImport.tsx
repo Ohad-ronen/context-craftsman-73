@@ -18,19 +18,24 @@ interface CSVImportProps {
 
 interface ParsedRow {
   name: string;
-  description?: string;
-  raw_data_sources: string;
-  extracted_context: string;
-  prompt: string;
-  full_injection: string;
+  goal: string;
+  mission: string;
+  example: string;
+  desired: string;
+  rules: string;
+  board_name: string;
+  board_full_context: string;
+  board_pulled_context: string;
+  search_terms: string;
+  search_context: string;
+  agentic_prompt: string;
   output: string;
   rating?: number;
   notes?: string;
-  status: 'draft' | 'completed' | 'evaluating';
 }
 
-const REQUIRED_COLUMNS = ['name', 'raw_data_sources', 'extracted_context', 'prompt', 'full_injection', 'output'];
-const OPTIONAL_COLUMNS = ['description', 'rating', 'notes', 'status'];
+const REQUIRED_COLUMNS = ['name'];
+const OPTIONAL_COLUMNS = ['goal', 'mission', 'example', 'desired', 'rules', 'board_name', 'board_full_context', 'board_pulled_context', 'search_terms', 'search_context', 'agentic_prompt', 'output', 'rating', 'notes'];
 
 function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   const lines = text.split(/\r?\n/).filter(line => line.trim());
@@ -61,7 +66,7 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
     return result;
   };
 
-  const headers = parseRow(lines[0]).map(h => h.toLowerCase().trim());
+  const headers = parseRow(lines[0]).map(h => h.toLowerCase().trim().replace(/\s+/g, '_'));
   const rows = lines.slice(1).map(parseRow);
 
   return { headers, rows };
@@ -134,27 +139,26 @@ export function CSVImport({ onImport }: CSVImportProps) {
         return;
       }
 
-      const statusValue = getValue('status').toLowerCase();
-      const status: 'draft' | 'completed' | 'evaluating' = 
-        ['draft', 'completed', 'evaluating'].includes(statusValue) 
-          ? statusValue as 'draft' | 'completed' | 'evaluating'
-          : 'draft';
-
       const ratingStr = getValue('rating');
       const rating = ratingStr ? parseInt(ratingStr, 10) : undefined;
       const validRating = rating && rating >= 1 && rating <= 5 ? rating : undefined;
 
       parsed.push({
         name: name.trim(),
-        description: getValue('description') || undefined,
-        raw_data_sources: getValue('raw_data_sources'),
-        extracted_context: getValue('extracted_context'),
-        prompt: getValue('prompt'),
-        full_injection: getValue('full_injection'),
-        output: getValue('output'),
+        goal: getValue('goal') || getValue('the_goal') || '',
+        mission: getValue('mission') || getValue('the_mission') || '',
+        example: getValue('example') || getValue('the_example') || '',
+        desired: getValue('desired') || '',
+        rules: getValue('rules') || '',
+        board_name: getValue('board_name') || '',
+        board_full_context: getValue('board_full_context') || '',
+        board_pulled_context: getValue('board_pulled_context') || '',
+        search_terms: getValue('search_terms') || getValue('serch_terms') || '',
+        search_context: getValue('search_context') || getValue('search_contetext') || '',
+        agentic_prompt: getValue('agentic_prompt') || getValue('the_agentic_prompt') || '',
+        output: getValue('output') || getValue('the_output') || '',
         rating: validRating,
         notes: getValue('notes') || undefined,
-        status,
       });
     });
 
@@ -244,7 +248,7 @@ export function CSVImport({ onImport }: CSVImportProps) {
                     <thead className="bg-muted">
                       <tr>
                         <th className="px-3 py-2 text-left font-medium">Name</th>
-                        <th className="px-3 py-2 text-left font-medium">Status</th>
+                        <th className="px-3 py-2 text-left font-medium">Board</th>
                         <th className="px-3 py-2 text-left font-medium">Rating</th>
                         <th className="px-3 py-2 text-left font-medium">Data</th>
                       </tr>
@@ -255,13 +259,12 @@ export function CSVImport({ onImport }: CSVImportProps) {
                           <td className="px-3 py-2 font-medium truncate max-w-[200px]">
                             {row.name}
                           </td>
-                          <td className="px-3 py-2 capitalize">{row.status}</td>
+                          <td className="px-3 py-2">{row.board_name || '—'}</td>
                           <td className="px-3 py-2">{row.rating || '—'}</td>
                           <td className="px-3 py-2 text-muted-foreground">
                             {[
-                              row.raw_data_sources && 'sources',
-                              row.extracted_context && 'context',
-                              row.prompt && 'prompt',
+                              row.goal && 'goal',
+                              row.agentic_prompt && 'prompt',
                               row.output && 'output',
                             ].filter(Boolean).join(', ') || '—'}
                           </td>

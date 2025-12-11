@@ -29,26 +29,14 @@ import { Sheet, Loader2, Download, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ExperimentFormData } from "@/hooks/useExperiments";
 
 interface GoogleSheetsImportProps {
-  onImport: (data: ExperimentData[]) => Promise<void>;
+  onImport: (data: ExperimentFormData[]) => Promise<void>;
 }
 
-interface ExperimentData {
-  name: string;
-  description?: string;
-  raw_data_sources: string;
-  extracted_context: string;
-  prompt: string;
-  full_injection: string;
-  output: string;
-  rating?: number;
-  notes?: string;
-  status?: string;
-}
-
-const REQUIRED_FIELDS = ['name', 'raw_data_sources', 'extracted_context', 'prompt', 'full_injection', 'output'];
-const OPTIONAL_FIELDS = ['description', 'rating', 'notes', 'status'];
+const REQUIRED_FIELDS = ['name'];
+const OPTIONAL_FIELDS = ['goal', 'mission', 'example', 'desired', 'rules', 'board_name', 'board_full_context', 'board_pulled_context', 'search_terms', 'search_context', 'agentic_prompt', 'output', 'rating', 'notes'];
 const ALL_FIELDS = [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
 
 export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
@@ -128,28 +116,29 @@ export function GoogleSheetsImport({ onImport }: GoogleSheetsImportProps) {
     setIsLoading(true);
 
     try {
-      const experiments: ExperimentData[] = sheetData.rows.map(row => {
-        const exp: ExperimentData = {
+      const experiments: ExperimentFormData[] = sheetData.rows.map(row => {
+        const exp: ExperimentFormData = {
           name: row[columnMapping['name']] || '',
-          raw_data_sources: row[columnMapping['raw_data_sources']] || '',
-          extracted_context: row[columnMapping['extracted_context']] || '',
-          prompt: row[columnMapping['prompt']] || '',
-          full_injection: row[columnMapping['full_injection']] || '',
+          goal: row[columnMapping['goal']] || '',
+          mission: row[columnMapping['mission']] || '',
+          example: row[columnMapping['example']] || '',
+          desired: row[columnMapping['desired']] || '',
+          rules: row[columnMapping['rules']] || '',
+          board_name: row[columnMapping['board_name']] || '',
+          board_full_context: row[columnMapping['board_full_context']] || '',
+          board_pulled_context: row[columnMapping['board_pulled_context']] || '',
+          search_terms: row[columnMapping['search_terms']] || '',
+          search_context: row[columnMapping['search_context']] || '',
+          agentic_prompt: row[columnMapping['agentic_prompt']] || '',
           output: row[columnMapping['output']] || '',
         };
 
-        if (columnMapping['description']) {
-          exp.description = row[columnMapping['description']];
-        }
         if (columnMapping['rating']) {
           const rating = parseInt(row[columnMapping['rating']]);
           if (!isNaN(rating)) exp.rating = rating;
         }
         if (columnMapping['notes']) {
           exp.notes = row[columnMapping['notes']];
-        }
-        if (columnMapping['status']) {
-          exp.status = row[columnMapping['status']];
         }
 
         return exp;

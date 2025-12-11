@@ -1,8 +1,7 @@
 import { Experiment } from '@/hooks/useExperiments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Trash2, Star, Clock, Database, Brain, MessageSquare, Sparkles, FileOutput, ArrowDown } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -15,18 +14,19 @@ interface ExperimentDetailProps {
   onUpdate?: (id: string, data: { rating?: number; notes?: string }) => Promise<void>;
 }
 
-const statusColors = {
-  draft: 'bg-muted text-muted-foreground',
-  completed: 'bg-step-output/20 text-step-output',
-  evaluating: 'bg-step-prompt/20 text-step-prompt',
-};
-
 const sections = [
-  { key: 'raw_data_sources', label: 'Raw Data Sources', icon: Database, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
-  { key: 'extracted_context', label: 'Extracted Context', icon: Brain, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
-  { key: 'prompt', label: 'Prompt Template', icon: MessageSquare, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
-  { key: 'full_injection', label: 'Full Prompt + Context', icon: Sparkles, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
-  { key: 'output', label: 'Generated Output', icon: FileOutput, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
+  { key: 'goal', label: 'The Goal', icon: Target, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
+  { key: 'mission', label: 'The Mission', icon: Compass, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
+  { key: 'example', label: 'The Example', icon: BookOpen, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
+  { key: 'desired', label: 'Desired', icon: Sparkles, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
+  { key: 'rules', label: 'Rules', icon: ScrollText, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
+  { key: 'board_name', label: 'Board Name', icon: Layout, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'board_full_context', label: 'Board Full Context', icon: Database, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'board_pulled_context', label: 'Board Pulled Context', icon: Database, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'search_terms', label: 'Search Terms', icon: Search, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'search_context', label: 'Search Context', icon: Search, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
+  { key: 'agentic_prompt', label: 'The Agentic Prompt', icon: Brain, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
+  { key: 'output', label: 'The Output', icon: FileOutput, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
 ];
 
 export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdate }: ExperimentDetailProps) {
@@ -35,6 +35,7 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
       await onUpdate(experiment.id, { rating: score, notes });
     }
   };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -45,9 +46,6 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{experiment.name}</h1>
-            {experiment.description && (
-              <p className="text-muted-foreground mt-1">{experiment.description}</p>
-            )}
             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
@@ -59,9 +57,6 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
                   <span>{experiment.rating}/5</span>
                 </div>
               )}
-              <Badge className={cn(statusColors[experiment.status])}>
-                {experiment.status}
-              </Badge>
             </div>
           </div>
         </div>
@@ -83,8 +78,10 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
           const Icon = section.icon;
           const content = experiment[section.key as keyof Experiment] as string;
           
+          if (!content) return null; // Skip empty sections
+          
           return (
-            <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+            <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
               <Card className={cn("glass-card border-l-4", section.borderColor)}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-base">
@@ -96,11 +93,11 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
                 </CardHeader>
                 <CardContent>
                   <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary/30 rounded-lg p-4 overflow-x-auto">
-                    {content || <span className="text-muted-foreground italic">No content</span>}
+                    {content}
                   </pre>
                 </CardContent>
               </Card>
-              {index < sections.length - 1 && (
+              {index < sections.length - 1 && content && (
                 <div className="flex justify-center py-2">
                   <ArrowDown className="w-5 h-5 text-muted-foreground/30" />
                 </div>
@@ -112,9 +109,9 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
 
       {/* AI Evaluation */}
       <AIEvaluation
-        prompt={experiment.prompt}
+        prompt={experiment.agentic_prompt}
         output={experiment.output}
-        context={experiment.extracted_context}
+        context={experiment.board_pulled_context}
         onEvaluationComplete={handleEvaluationComplete}
       />
 

@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -27,18 +26,11 @@ interface ExperimentsTableProps {
   onViewExperiment: (id: string) => void;
 }
 
-type SortField = 'name' | 'status' | 'rating' | 'created_at' | 'updated_at';
+type SortField = 'name' | 'rating' | 'created_at' | 'updated_at' | 'board_name';
 type SortDirection = 'asc' | 'desc';
-
-const statusColors = {
-  draft: 'bg-muted text-muted-foreground',
-  completed: 'bg-step-output/20 text-step-output',
-  evaluating: 'bg-step-prompt/20 text-step-prompt',
-};
 
 export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -69,15 +61,12 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
       const query = searchQuery.toLowerCase();
       result = result.filter(exp => 
         exp.name.toLowerCase().includes(query) ||
-        exp.description?.toLowerCase().includes(query) ||
+        exp.goal.toLowerCase().includes(query) ||
+        exp.mission.toLowerCase().includes(query) ||
         exp.output.toLowerCase().includes(query) ||
-        exp.prompt.toLowerCase().includes(query)
+        exp.agentic_prompt.toLowerCase().includes(query) ||
+        exp.board_name.toLowerCase().includes(query)
       );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(exp => exp.status === statusFilter);
     }
 
     // Apply rating filter
@@ -98,8 +87,8 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
-        case 'status':
-          comparison = a.status.localeCompare(b.status);
+        case 'board_name':
+          comparison = a.board_name.localeCompare(b.board_name);
           break;
         case 'rating':
           const ratingA = a.rating || 0;
@@ -118,9 +107,10 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
     });
 
     return result;
-  }, [experiments, searchQuery, statusFilter, ratingFilter, sortField, sortDirection]);
+  }, [experiments, searchQuery, ratingFilter, sortField, sortDirection]);
 
   const truncateText = (text: string, maxLength: number = 50) => {
+    if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
@@ -141,33 +131,21 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
         
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={ratingFilter} onValueChange={setRatingFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Rating" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="evaluating">Evaluating</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="all">All Ratings</SelectItem>
+              <SelectItem value="unrated">Unrated</SelectItem>
+              <SelectItem value="5">5 Stars</SelectItem>
+              <SelectItem value="4">4 Stars</SelectItem>
+              <SelectItem value="3">3 Stars</SelectItem>
+              <SelectItem value="2">2 Stars</SelectItem>
+              <SelectItem value="1">1 Star</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        <Select value={ratingFilter} onValueChange={setRatingFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Rating" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Ratings</SelectItem>
-            <SelectItem value="unrated">Unrated</SelectItem>
-            <SelectItem value="5">5 Stars</SelectItem>
-            <SelectItem value="4">4 Stars</SelectItem>
-            <SelectItem value="3">3 Stars</SelectItem>
-            <SelectItem value="2">2 Stars</SelectItem>
-            <SelectItem value="1">1 Star</SelectItem>
-          </SelectContent>
-        </Select>
 
         <span className="text-sm text-muted-foreground ml-auto">
           {filteredAndSortedExperiments.length} of {experiments.length} experiments
@@ -190,11 +168,11 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
               </TableHead>
               <TableHead 
                 className="cursor-pointer hover:text-foreground transition-colors"
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort('board_name')}
               >
                 <div className="flex items-center">
-                  Status
-                  <SortIcon field="status" />
+                  Board
+                  <SortIcon field="board_name" />
                 </div>
               </TableHead>
               <TableHead 
@@ -245,17 +223,17 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
                   <TableCell className="font-medium">
                     <div>
                       <div className="font-semibold">{experiment.name}</div>
-                      {experiment.description && (
+                      {experiment.goal && (
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {truncateText(experiment.description, 40)}
+                          {truncateText(experiment.goal, 40)}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={cn("text-xs", statusColors[experiment.status])}>
-                      {experiment.status}
-                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {truncateText(experiment.board_name, 20) || '—'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {experiment.rating ? (
