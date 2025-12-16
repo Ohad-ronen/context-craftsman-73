@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { fireConfetti } from '@/lib/confetti';
 import { recordBattle } from '@/hooks/useEloRating';
+import { CompactJsonViewer } from '@/components/CompactJsonViewer';
 import { cn } from '@/lib/utils';
 
 interface Experiment {
@@ -273,8 +274,8 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
                     </span>
                   </div>
                   <ScrollArea className="flex-1 min-h-[300px] max-h-[50vh]">
-                    <div className="text-sm whitespace-pre-wrap pr-4">
-                      {exp.output}
+                    <div className="pr-4">
+                      <CompactJsonViewer content={exp.output} />
                     </div>
                   </ScrollArea>
                 </CardContent>
@@ -334,8 +335,8 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
               </div>
             </div>
             <ScrollArea className="max-h-[40vh]">
-              <div className="text-sm whitespace-pre-wrap bg-muted/50 rounded-lg p-4">
-                {winner.output}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <CompactJsonViewer content={winner.output} />
               </div>
             </ScrollArea>
           </CardContent>
