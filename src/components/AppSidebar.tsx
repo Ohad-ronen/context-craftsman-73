@@ -236,30 +236,6 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className={cn("p-3 border-t border-border/50", isCollapsed && "p-2")}>
-        {/* Collapse toggle button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className={cn(
-                "w-full h-8 mb-2 text-muted-foreground hover:text-foreground transition-all duration-200",
-                isCollapsed && "w-8 mx-auto"
-              )}
-            >
-              {isCollapsed ? (
-                <PanelLeft className="w-4 h-4" />
-              ) : (
-                <PanelLeftClose className="w-4 h-4" />
-              )}
-              {!isCollapsed && <span className="ml-2 text-sm">Collapse</span>}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" hidden={!isCollapsed}>
-            Expand sidebar
-          </TooltipContent>
-        </Tooltip>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
