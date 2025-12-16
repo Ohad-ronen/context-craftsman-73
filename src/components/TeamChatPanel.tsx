@@ -8,9 +8,10 @@ import { useChatReactions, MessageReaction } from '@/hooks/useChatReactions';
 import { useAuth } from '@/hooks/useAuth';
 import { Experiment } from '@/hooks/useExperiments';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EMOJI_OPTIONS = ['👍', '❤️', '😂', '🎉', '🔥', '👀', '💯', '🚀'];
 
@@ -61,7 +62,8 @@ function MessageContent({
 export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment }: TeamChatPanelProps) {
   const { user } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
-  const { messages, isLoading, sendMessage, deleteMessage, typingUsers, setTyping } = useTeamChat(user?.id, displayName);
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const { messages, isLoading, sendMessage, deleteMessage, typingUsers, setTyping, onlineUsers } = useTeamChat(user?.id, displayName, avatarUrl);
   const { reactions, toggleReaction } = useChatReactions();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -132,14 +134,57 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
         )}
       >
         {/* Header */}
-        <div className="p-4 border-b border-border/50 flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <Users className="w-5 h-5 text-primary" />
+        <div className="p-4 border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-semibold">Team Chat</h2>
+              <p className="text-xs text-muted-foreground">Use # to link experiments</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h2 className="font-semibold">Team Chat</h2>
-            <p className="text-xs text-muted-foreground">Use # to link experiments</p>
-          </div>
+          
+          {/* Online Users */}
+          {onlineUsers.length > 0 && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Circle className="h-2 w-2 fill-green-500 text-green-500" />
+                <span>{onlineUsers.length} online</span>
+              </div>
+              <div className="flex -space-x-2">
+                <TooltipProvider>
+                  {onlineUsers.slice(0, 5).map((onlineUser) => (
+                    <Tooltip key={onlineUser.userId}>
+                      <TooltipTrigger asChild>
+                        <Avatar className="h-6 w-6 border-2 border-background ring-2 ring-green-500/30">
+                          <AvatarImage src={onlineUser.avatarUrl} />
+                          <AvatarFallback className="text-[10px]">
+                            {onlineUser.displayName.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">{onlineUser.displayName}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                  {onlineUsers.length > 5 && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                          <span className="text-[10px] text-muted-foreground">+{onlineUsers.length - 5}</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">{onlineUsers.slice(5).map(u => u.displayName).join(', ')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </TooltipProvider>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Messages */}
