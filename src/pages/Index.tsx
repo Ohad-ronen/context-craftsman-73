@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useExperiments, ExperimentFormData } from '@/hooks/useExperiments';
 import { useTags } from '@/hooks/useTags';
+import { useKeyboardShortcuts, Shortcut } from '@/hooks/useKeyboardShortcuts';
 import { Header } from '@/components/Header';
 import { ExperimentCard } from '@/components/ExperimentCard';
 import { ExperimentForm } from '@/components/ExperimentForm';
@@ -13,6 +14,7 @@ import { ABComparison } from '@/components/ABComparison';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
+import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -39,6 +41,7 @@ const Index = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analyzerOpen, setAnalyzerOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
@@ -120,6 +123,25 @@ const Index = () => {
     }
   };
 
+  // Keyboard shortcuts
+  const shortcuts: Shortcut[] = useMemo(() => [
+    { key: '?', handler: () => setShortcutsOpen(true), description: 'Show keyboard shortcuts', category: 'General' },
+    { key: 'Escape', handler: () => { 
+      if (shortcutsOpen) setShortcutsOpen(false);
+      else if (analyzerOpen) setAnalyzerOpen(false);
+      else if (view !== 'list') handleBack();
+      else setSelectedTagIds([]);
+    }, description: 'Close dialog / Go back / Clear filters', category: 'General' },
+    { key: 'd', handler: () => { setViewMode('dashboard'); setView('list'); }, description: 'Dashboard view', category: 'Navigation' },
+    { key: 't', handler: () => { setViewMode('table'); setView('list'); }, description: 'Table view', category: 'Navigation' },
+    { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
+    { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
+    { key: 'a', handler: () => setAnalyzerOpen(true), description: 'Open AI analyzer', category: 'Actions' },
+    { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
+  ], [view, shortcutsOpen, analyzerOpen]);
+
+  useKeyboardShortcuts(shortcuts, !deleteDialogOpen);
+
   const renderLoadingState = () => {
     if (viewMode === 'dashboard') {
       return <DashboardSkeleton />;
@@ -144,6 +166,7 @@ const Index = () => {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           onOpenAnalyzer={() => {}}
+          onOpenShortcuts={() => setShortcutsOpen(true)}
           tags={[]}
           selectedTagIds={[]}
           onToggleTag={() => {}}
@@ -163,6 +186,7 @@ const Index = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
         tags={tags}
         selectedTagIds={selectedTagIds}
         onToggleTag={handleToggleTag}
@@ -276,6 +300,12 @@ const Index = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <KeyboardShortcutsDialog 
+        open={shortcutsOpen} 
+        onOpenChange={setShortcutsOpen}
+        shortcuts={shortcuts}
+      />
     </div>
   );
 };
