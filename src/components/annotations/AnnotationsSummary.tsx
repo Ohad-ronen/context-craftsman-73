@@ -109,6 +109,11 @@ export function AnnotationsSummary({
                           "{annotation.highlighted_text}"
                         </p>
                         <p className="text-sm line-clamp-2">{annotation.note}</p>
+                        {annotation.profile && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            by {annotation.profile.display_name || annotation.profile.email || 'Unknown'}
+                          </p>
+                        )}
                       </div>
                       <Button
                         variant="ghost"

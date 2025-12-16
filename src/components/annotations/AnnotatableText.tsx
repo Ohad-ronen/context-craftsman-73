@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Annotation, CreateAnnotationData } from '@/hooks/useAnnotations';
+import { useAuth } from '@/hooks/useAuth';
 import { AnnotationPopover } from './AnnotationPopover';
 import { AnnotationHighlight } from './AnnotationHighlight';
 import { createPortal } from 'react-dom';
@@ -30,6 +31,7 @@ export function AnnotatableText({
   onUpdateAnnotation,
   onDeleteAnnotation,
 }: AnnotatableTextProps) {
+  const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<SelectionState | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -84,7 +86,7 @@ export function AnnotatableText({
   }, [sortedAnnotations]);
 
   const handleSaveAnnotation = async (note: string) => {
-    if (!selection) return;
+    if (!selection || !user) return;
 
     await onCreateAnnotation({
       experiment_id: experimentId,
@@ -93,6 +95,7 @@ export function AnnotatableText({
       end_offset: selection.endOffset,
       highlighted_text: selection.text,
       note,
+      user_id: user.id,
     });
 
     window.getSelection()?.removeAllRanges();
