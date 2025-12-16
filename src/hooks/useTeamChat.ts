@@ -44,28 +44,44 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
 
   const fetchMessages = useCallback(async () => {
     try {
+      // Fetch messages with profile - skip self-referencing join
       const { data, error } = await supabase
         .from('team_chat_messages')
         .select(`
           *,
-          profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url),
-          reply_to:team_chat_messages!team_chat_messages_reply_to_id_fkey(
-            id,
-            message,
-            profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
-          )
+          profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
         `)
         .order('created_at', { ascending: true })
         .limit(100);
 
       if (error) throw error;
       
-      // Transform reply_to from array to single object
-      const transformedData = (data || []).map(msg => ({
+      // For messages that have a reply_to_id, fetch those messages separately
+      const messagesWithReplies = data || [];
+      const replyIds = messagesWithReplies
+        .filter(m => m.reply_to_id)
+        .map(m => m.reply_to_id);
+      
+      let repliesMap = new Map();
+      if (replyIds.length > 0) {
+        const { data: repliesData } = await supabase
+          .from('team_chat_messages')
+          .select(`
+            id,
+            message,
+            profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
+          `)
+          .in('id', replyIds);
+        
+        repliesMap = new Map(
+          (repliesData || []).map(r => [r.id, r])
+        );
+      }
+      
+      // Transform data to include reply_to objects
+      const transformedData = messagesWithReplies.map(msg => ({
         ...msg,
-        reply_to: Array.isArray(msg.reply_to) && msg.reply_to.length > 0 
-          ? msg.reply_to[0] 
-          : null
+        reply_to: msg.reply_to_id ? repliesMap.get(msg.reply_to_id) || null : null
       }));
       
       setMessages(transformedData as ChatMessage[]);
@@ -90,29 +106,33 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
           table: 'team_chat_messages'
         },
         async (payload) => {
+          // Fetch the new message with profile
           const { data, error } = await supabase
             .from('team_chat_messages')
             .select(`
               *,
-              profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url),
-              reply_to:team_chat_messages!team_chat_messages_reply_to_id_fkey(
-                id,
-                message,
-                profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
-              )
+              profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
             `)
             .eq('id', payload.new.id)
             .single();
 
           if (!error && data) {
-            // Transform reply_to from array to single object
-            const transformedData = {
-              ...data,
-              reply_to: Array.isArray(data.reply_to) && data.reply_to.length > 0 
-                ? data.reply_to[0] 
-                : null
-            };
-            setMessages(prev => [...prev, transformedData as ChatMessage]);
+            // If it has a reply, fetch that too
+            let reply_to = null;
+            if (data.reply_to_id) {
+              const { data: replyData } = await supabase
+                .from('team_chat_messages')
+                .select(`
+                  id,
+                  message,
+                  profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
+                `)
+                .eq('id', data.reply_to_id)
+                .single();
+              reply_to = replyData || null;
+            }
+            
+            setMessages(prev => [...prev, { ...data, reply_to } as ChatMessage]);
           }
         }
       )
