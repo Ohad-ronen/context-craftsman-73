@@ -66,18 +66,18 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
         size="icon"
         onClick={onToggle}
         className={cn(
-          "fixed left-0 top-1/2 -translate-y-1/2 z-50 h-12 w-6 rounded-l-none rounded-r-lg bg-primary/10 hover:bg-primary/20 border border-l-0 border-border/50 transition-all",
-          isOpen && "left-80"
+          "fixed right-0 top-1/2 -translate-y-1/2 z-50 h-12 w-6 rounded-r-none rounded-l-lg bg-primary/10 hover:bg-primary/20 border border-r-0 border-border/50 transition-all",
+          isOpen && "right-80"
         )}
       >
-        {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        {isOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </Button>
 
       {/* Chat Panel */}
       <div
         className={cn(
-          "fixed left-0 top-0 h-full w-80 bg-background border-r border-border/50 z-40 transition-transform duration-300 ease-in-out flex flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed right-0 top-0 h-full w-80 bg-background border-l border-border/50 z-40 transition-transform duration-300 ease-in-out flex flex-col",
+          isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         {/* Header */}
