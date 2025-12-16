@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
   LayoutGrid, 
@@ -12,7 +13,8 @@ import {
   Trash2,
   Settings,
   Sun,
-  Moon
+  Moon,
+  User
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -260,6 +262,13 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/50 space-y-1">
+        <SidebarMenuButton 
+          onClick={() => window.location.href = '/profile'}
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+        >
+          <User className="w-4 h-4" />
+          <span>Profile Settings</span>
+        </SidebarMenuButton>
         <ThemeToggleButton />
         {onOpenShortcuts && (
           <SidebarMenuButton 
