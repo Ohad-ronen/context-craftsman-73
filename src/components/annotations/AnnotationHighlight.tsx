@@ -54,7 +54,7 @@ export function AnnotationHighlight({
           {children}
         </mark>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80 p-3" align="start">
+      <HoverCardContent className="w-80 p-3 z-[100]" align="start" sideOffset={8}>
         <div className="space-y-3">
           <div className="flex items-start gap-2">
             <MessageSquare className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
