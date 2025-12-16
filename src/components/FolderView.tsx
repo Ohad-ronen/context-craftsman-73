@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { useDroppable } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
-import { FolderPlus, ArrowLeft, FolderOpen } from 'lucide-react';
+import { FolderPlus, ArrowLeft, FolderOpen, FolderMinus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -47,6 +47,29 @@ function UnfiledDropZone({ children, isActive }: { children: React.ReactNode; is
       )}
     >
       {children}
+    </div>
+  );
+}
+
+function UnfiledDropZoneButton({ isActive }: { isActive: boolean }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'unfiled-zone',
+    data: { type: 'unfiled' },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200",
+        isActive ? "border-dashed border-muted-foreground/50 bg-muted/30" : "border-transparent",
+        isOver && "border-primary bg-primary/10 scale-105"
+      )}
+    >
+      <FolderMinus className="w-4 h-4 text-muted-foreground" />
+      <span className="text-sm text-muted-foreground">
+        {isActive ? "Drop here to unfile" : ""}
+      </span>
     </div>
   );
 }
@@ -170,23 +193,28 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
         onDragEnd={handleDragEnd}
       >
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => setCurrentFolderId(null)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Folders
-            </Button>
-            <div className="flex items-center gap-2">
-              <div
-                className="p-1.5 rounded"
-                style={{ backgroundColor: `${currentFolder.color}20` }}
-              >
-                <FolderOpen className="w-5 h-5" style={{ color: currentFolder.color }} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => setCurrentFolderId(null)}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Folders
+              </Button>
+              <div className="flex items-center gap-2">
+                <div
+                  className="p-1.5 rounded"
+                  style={{ backgroundColor: `${currentFolder.color}20` }}
+                >
+                  <FolderOpen className="w-5 h-5" style={{ color: currentFolder.color }} />
+                </div>
+                <h2 className="text-xl font-semibold">{currentFolder.name}</h2>
+                <span className="text-muted-foreground">
+                  ({folderExperiments.length} experiment{folderExperiments.length !== 1 ? 's' : ''})
+                </span>
               </div>
-              <h2 className="text-xl font-semibold">{currentFolder.name}</h2>
-              <span className="text-muted-foreground">
-                ({folderExperiments.length} experiment{folderExperiments.length !== 1 ? 's' : ''})
-              </span>
             </div>
+            
+            {/* Unfiled drop zone - visible when dragging */}
+            <UnfiledDropZoneButton isActive={!!activeExperimentId} />
           </div>
 
           {folderExperiments.length === 0 ? (
