@@ -64,6 +64,10 @@ export function useFolders() {
         .single();
 
       if (error) throw error;
+      
+      // Immediately update local state
+      setFolders(prev => [...prev, data as Folder].sort((a, b) => a.name.localeCompare(b.name)));
+      
       return data as Folder;
     } catch (error) {
       console.error('Error creating folder:', error);
@@ -84,6 +88,10 @@ export function useFolders() {
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Immediately update local state
+      setFolders(prev => prev.map(f => f.id === id ? { ...f, ...data } : f));
+      
       return true;
     } catch (error) {
       console.error('Error updating folder:', error);
@@ -104,6 +112,10 @@ export function useFolders() {
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Immediately update local state
+      setFolders(prev => prev.filter(f => f.id !== id));
+      
       return true;
     } catch (error) {
       console.error('Error deleting folder:', error);
