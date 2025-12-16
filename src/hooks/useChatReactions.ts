@@ -14,26 +14,39 @@ export function useChatReactions() {
   const [reactions, setReactions] = useState<MessageReactions>({});
 
   const fetchReactions = useCallback(async () => {
-    const { data, error } = await supabase
+    // Fetch reactions without join since there's no FK to profiles
+    const { data: reactionsData, error: reactionsError } = await supabase
       .from('chat_message_reactions')
-      .select(`
-        message_id,
-        emoji,
-        user_id,
-        profiles:user_id(display_name, email)
-      `);
+      .select('message_id, emoji, user_id');
 
-    if (error) {
-      console.error('Error fetching reactions:', error);
+    if (reactionsError) {
+      console.error('Error fetching reactions:', reactionsError);
       return;
     }
 
+    if (!reactionsData || reactionsData.length === 0) {
+      setReactions({});
+      return;
+    }
+
+    // Get unique user IDs and fetch profiles
+    const userIds = [...new Set(reactionsData.map(r => r.user_id))];
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, display_name, email')
+      .in('id', userIds);
+
+    const profilesMap = new Map(
+      (profilesData || []).map(p => [p.id, p])
+    );
+
     const grouped: MessageReactions = {};
-    (data || []).forEach((r: any) => {
+    reactionsData.forEach((r) => {
       if (!grouped[r.message_id]) grouped[r.message_id] = [];
       
+      const profile = profilesMap.get(r.user_id);
+      const displayName = profile?.display_name || profile?.email?.split('@')[0] || 'User';
       const existing = grouped[r.message_id].find(e => e.emoji === r.emoji);
-      const displayName = r.profiles?.display_name || r.profiles?.email?.split('@')[0] || 'User';
       
       if (existing) {
         existing.users.push({ userId: r.user_id, displayName });
