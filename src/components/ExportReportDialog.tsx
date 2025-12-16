@@ -85,6 +85,14 @@ export function ExportReportDialog({ experiments, tags, getTagsForExperiment }: 
             .insights { padding: 16px; background: #f9f9f9; border-radius: 8px; }
             .insights ul { list-style: none; }
             .insights li { font-size: 13px; color: #444; padding: 4px 0; }
+            .top-experiments { margin-top: 24px; }
+            .top-experiments h2 { font-size: 16px; font-weight: 600; color: #111; margin-bottom: 12px; }
+            .top-experiments table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            .top-experiments th { text-align: left; padding: 8px; background: #f3f3f3; border-bottom: 1px solid #ddd; font-weight: 600; }
+            .top-experiments td { padding: 8px; border-bottom: 1px solid #eee; }
+            .top-experiments .rating-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+            .top-experiments .rating-badge.high { background: #d1fae5; color: #065f46; }
+            .top-experiments .rating-badge.medium { background: #fef3c7; color: #92400e; }
             @media print { body { padding: 20px; } }
           </style>
         </head>
@@ -102,6 +110,11 @@ export function ExportReportDialog({ experiments, tags, getTagsForExperiment }: 
   };
 
   const getRatingColor = (r: number) => r >= 4 ? 'green' : r >= 3 ? 'amber' : 'red';
+
+  const topExperiments = filteredExperiments
+    .filter(exp => exp.rating !== null)
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(0, 5);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -218,6 +231,38 @@ export function ExportReportDialog({ experiments, tags, getTagsForExperiment }: 
                 <li>• Average: {summaryStats.averageRating.toFixed(2)}/5</li>
               </ul>
             </div>
+
+            {topExperiments.length > 0 && (
+              <div className="top-experiments">
+                <h2>Top Performing Experiments</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Goal</th>
+                      <th>Rating</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topExperiments.map(exp => (
+                      <tr key={exp.id}>
+                        <td style={{ fontWeight: 500 }}>{exp.name}</td>
+                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {exp.goal || '-'}
+                        </td>
+                        <td>
+                          <span className={`rating-badge ${(exp.rating ?? 0) >= 4 ? 'high' : 'medium'}`}>
+                            ★ {exp.rating}
+                          </span>
+                        </td>
+                        <td>{format(parseISO(exp.created_at), 'MMM dd, yyyy')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t">
