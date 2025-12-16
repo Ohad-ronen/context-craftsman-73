@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagBadge } from '@/components/TagBadge';
 import { Star, Clock, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface ExperimentCardProps {
   experiment: Experiment;
@@ -14,17 +15,22 @@ interface ExperimentCardProps {
 export function ExperimentCard({ experiment, tags = [], onClick }: ExperimentCardProps) {
   return (
     <Card 
-      className="glass-card cursor-pointer hover:border-primary/50 transition-all duration-300 group animate-slide-up"
+      className={cn(
+        "glass-card cursor-pointer transition-all duration-300 group",
+        "hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10",
+        "hover:-translate-y-2 active:translate-y-0 active:scale-[0.98]",
+        "animate-fade-in"
+      )}
       onClick={onClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+            <CardTitle className="text-lg font-semibold truncate group-hover:text-primary transition-colors duration-300">
               {experiment.name}
             </CardTitle>
             {experiment.goal && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2 transition-colors duration-300 group-hover:text-muted-foreground/80">
                 {experiment.goal}
               </p>
             )}
@@ -45,33 +51,37 @@ export function ExperimentCard({ experiment, tags = [], onClick }: ExperimentCar
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4" />
+          <div className="flex items-center gap-1.5 transition-transform duration-300 group-hover:scale-105">
+            <Clock className="w-4 h-4 transition-all duration-300 group-hover:rotate-12" />
             <span>{formatDistanceToNow(new Date(experiment.updated_at), { addSuffix: true })}</span>
           </div>
           {experiment.rating && (
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
-              <span>{experiment.rating}/5</span>
+            <div className="flex items-center gap-1.5 transition-transform duration-300 group-hover:scale-110">
+              <Star className="w-4 h-4 text-step-prompt fill-step-prompt transition-all duration-300 group-hover:rotate-12 group-hover:drop-shadow-[0_0_8px_hsl(var(--prompt-step))]" />
+              <span className="font-medium">{experiment.rating}/5</span>
             </div>
           )}
           <div className="flex items-center gap-1.5 ml-auto">
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
             <span className="truncate max-w-[100px]">
               {experiment.output ? experiment.output.substring(0, 30) + '...' : 'No output'}
             </span>
           </div>
         </div>
         
-        {/* Flow preview */}
+        {/* Flow preview with hover animations */}
         <div className="flex items-center gap-1 mt-4 pt-4 border-t border-border/50">
-          <div className="w-2 h-2 rounded-full bg-step-input" />
-          <div className="flex-1 h-0.5 bg-gradient-to-r from-step-input via-step-context to-step-prompt" />
-          <div className="w-2 h-2 rounded-full bg-step-context" />
-          <div className="flex-1 h-0.5 bg-gradient-to-r from-step-context via-step-prompt to-step-output" />
-          <div className="w-2 h-2 rounded-full bg-step-prompt" />
-          <div className="flex-1 h-0.5 bg-step-output/50" />
-          <div className="w-2 h-2 rounded-full bg-step-output" />
+          <div className="w-2 h-2 rounded-full bg-step-input transition-all duration-300 group-hover:scale-150 group-hover:shadow-[0_0_10px_hsl(var(--input-step))]" 
+               style={{ transitionDelay: '0ms' }} />
+          <div className="flex-1 h-0.5 bg-gradient-to-r from-step-input via-step-context to-step-prompt transition-all duration-500 group-hover:h-1 origin-left" />
+          <div className="w-2 h-2 rounded-full bg-step-context transition-all duration-300 group-hover:scale-150 group-hover:shadow-[0_0_10px_hsl(var(--context-step))]"
+               style={{ transitionDelay: '100ms' }} />
+          <div className="flex-1 h-0.5 bg-gradient-to-r from-step-context via-step-prompt to-step-output transition-all duration-500 group-hover:h-1" />
+          <div className="w-2 h-2 rounded-full bg-step-prompt transition-all duration-300 group-hover:scale-150 group-hover:shadow-[0_0_10px_hsl(var(--prompt-step))]"
+               style={{ transitionDelay: '200ms' }} />
+          <div className="flex-1 h-0.5 bg-step-output/50 transition-all duration-500 group-hover:h-1 group-hover:bg-step-output" />
+          <div className="w-2 h-2 rounded-full bg-step-output transition-all duration-300 group-hover:scale-150 group-hover:shadow-[0_0_10px_hsl(var(--output-step))]"
+               style={{ transitionDelay: '300ms' }} />
         </div>
       </CardContent>
     </Card>
