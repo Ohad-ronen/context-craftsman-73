@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter, X, Tags } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -27,16 +28,44 @@ interface ExperimentsTableProps {
   experiments: Experiment[];
   onViewExperiment: (id: string) => void;
   getTagsForExperiment?: (experimentId: string) => Tag[];
+  availableTags?: Tag[];
 }
 
 type SortField = 'name' | 'rating' | 'created_at' | 'updated_at' | 'board_name';
 type SortDirection = 'asc' | 'desc';
 
-export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExperiment }: ExperimentsTableProps) {
+export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExperiment, availableTags = [] }: ExperimentsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
+  const [goalFilter, setGoalFilter] = useState<string>('all');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Get unique goals from experiments
+  const uniqueGoals = useMemo(() => {
+    const goals = new Set<string>();
+    experiments.forEach(exp => {
+      if (exp.goal && exp.goal.trim()) {
+        // Truncate long goals for display
+        const truncated = exp.goal.length > 50 ? exp.goal.substring(0, 50) + '...' : exp.goal;
+        goals.add(truncated);
+      }
+    });
+    return Array.from(goals).sort();
+  }, [experiments]);
+
+  // Map truncated goals back to full goals for filtering
+  const goalMap = useMemo(() => {
+    const map = new Map<string, string>();
+    experiments.forEach(exp => {
+      if (exp.goal && exp.goal.trim()) {
+        const truncated = exp.goal.length > 50 ? exp.goal.substring(0, 50) + '...' : exp.goal;
+        map.set(truncated, exp.goal);
+      }
+    });
+    return map;
+  }, [experiments]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -46,6 +75,23 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
       setSortDirection('desc');
     }
   };
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTagIds(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setRatingFilter('all');
+    setGoalFilter('all');
+    setSelectedTagIds([]);
+  };
+
+  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || selectedTagIds.length > 0;
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -82,6 +128,20 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
       }
     }
 
+    // Apply goal filter
+    if (goalFilter !== 'all') {
+      const fullGoal = goalMap.get(goalFilter) || goalFilter;
+      result = result.filter(exp => exp.goal === fullGoal);
+    }
+
+    // Apply tag filter
+    if (selectedTagIds.length > 0 && getTagsForExperiment) {
+      result = result.filter(exp => {
+        const expTags = getTagsForExperiment(exp.id);
+        return selectedTagIds.some(tagId => expTags.some(t => t.id === tagId));
+      });
+    }
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
@@ -110,7 +170,7 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     });
 
     return result;
-  }, [experiments, searchQuery, ratingFilter, sortField, sortDirection]);
+  }, [experiments, searchQuery, ratingFilter, goalFilter, selectedTagIds, sortField, sortDirection, goalMap, getTagsForExperiment]);
 
   const truncateText = (text: string, maxLength: number = 50) => {
     if (!text) return '';
@@ -118,11 +178,13 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     return text.substring(0, maxLength) + '...';
   };
 
+  const selectedTags = availableTags.filter(t => selectedTagIds.includes(t.id));
+
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-[400px]">
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[200px] max-w-[300px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search experiments..."
@@ -132,28 +194,119 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
           />
         </div>
         
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <Select value={ratingFilter} onValueChange={setRatingFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Rating" />
+        <Select value={ratingFilter} onValueChange={setRatingFilter}>
+          <SelectTrigger className="w-[130px]">
+            <Star className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Rating" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Ratings</SelectItem>
+            <SelectItem value="unrated">Unrated</SelectItem>
+            <SelectItem value="5">5 Stars</SelectItem>
+            <SelectItem value="4">4 Stars</SelectItem>
+            <SelectItem value="3">3 Stars</SelectItem>
+            <SelectItem value="2">2 Stars</SelectItem>
+            <SelectItem value="1">1 Star</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {uniqueGoals.length > 0 && (
+          <Select value={goalFilter} onValueChange={setGoalFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Goal" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="unrated">Unrated</SelectItem>
-              <SelectItem value="5">5 Stars</SelectItem>
-              <SelectItem value="4">4 Stars</SelectItem>
-              <SelectItem value="3">3 Stars</SelectItem>
-              <SelectItem value="2">2 Stars</SelectItem>
-              <SelectItem value="1">1 Star</SelectItem>
+              <SelectItem value="all">All Goals</SelectItem>
+              {uniqueGoals.map(goal => (
+                <SelectItem key={goal} value={goal}>
+                  {goal}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>
+        )}
+
+        {availableTags.length > 0 && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="default" className="gap-2">
+                <Tags className="w-4 h-4" />
+                Tags
+                {selectedTagIds.length > 0 && (
+                  <span className="bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-xs">
+                    {selectedTagIds.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3 bg-popover border-border" align="start">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Filter by Tags</p>
+                  {selectedTagIds.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedTagIds([])}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {availableTags.map(tag => {
+                    const isSelected = selectedTagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => handleToggleTag(tag.id)}
+                        className={cn(
+                          "transition-all",
+                          isSelected ? "scale-105" : "opacity-60 hover:opacity-100"
+                        )}
+                      >
+                        <TagBadge 
+                          name={tag.name} 
+                          color={tag.color}
+                          className={isSelected ? "ring-2 ring-primary" : ""}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearAllFilters} className="gap-1 text-muted-foreground">
+            <X className="w-4 h-4" />
+            Clear filters
+          </Button>
+        )}
 
         <span className="text-sm text-muted-foreground ml-auto">
           {filteredAndSortedExperiments.length} of {experiments.length} experiments
         </span>
       </div>
+
+      {/* Active Tag Filters */}
+      {selectedTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <span className="text-xs text-muted-foreground">Filtered by tags:</span>
+          {selectedTags.map(tag => (
+            <TagBadge
+              key={tag.id}
+              name={tag.name}
+              color={tag.color}
+              onRemove={() => handleToggleTag(tag.id)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Table */}
       <div className="rounded-lg border border-border overflow-hidden">
