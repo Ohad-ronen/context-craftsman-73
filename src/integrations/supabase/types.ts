@@ -287,6 +287,7 @@ export type Database = {
           desired: string
           elo_rating: number
           example: string
+          folder_id: string | null
           goal: string
           id: string
           mission: string
@@ -308,6 +309,7 @@ export type Database = {
           desired?: string
           elo_rating?: number
           example?: string
+          folder_id?: string | null
           goal?: string
           id?: string
           mission?: string
@@ -329,6 +331,7 @@ export type Database = {
           desired?: string
           elo_rating?: number
           example?: string
+          folder_id?: string | null
           goal?: string
           id?: string
           mission?: string
@@ -339,6 +342,38 @@ export type Database = {
           rules?: string
           search_context?: string
           search_terms?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiments_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []

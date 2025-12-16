@@ -22,6 +22,7 @@ import { TeamChatPanel } from '@/components/TeamChatPanel';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { OutputBattle } from '@/components/OutputBattle';
+import { FolderView } from '@/components/FolderView';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -278,27 +279,24 @@ const Index = () => {
                     experiments={filteredExperiments} 
                     onBack={() => setViewMode('table')} 
                   />
-                ) : filteredExperiments.length === 0 ? (
-                  <EmptyState onNewExperiment={handleNewExperiment} />
                 ) : viewMode === 'table' ? (
-                  <ExperimentsTable 
-                    experiments={filteredExperiments}
-                    onViewExperiment={handleViewExperiment}
-                    getTagsForExperiment={getTagsForExperiment}
-                    availableTags={tags}
-                  />
+                  filteredExperiments.length === 0 ? (
+                    <EmptyState onNewExperiment={handleNewExperiment} />
+                  ) : (
+                    <ExperimentsTable 
+                      experiments={filteredExperiments}
+                      onViewExperiment={handleViewExperiment}
+                      getTagsForExperiment={getTagsForExperiment}
+                      availableTags={tags}
+                    />
+                  )
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredExperiments.map((experiment, index) => (
-                      <div key={experiment.id} style={{ animationDelay: `${index * 50}ms` }}>
-                        <ExperimentCard
-                          experiment={experiment}
-                          tags={getTagsForExperiment(experiment.id)}
-                          onClick={() => handleViewExperiment(experiment.id)}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <FolderView
+                    experiments={filteredExperiments}
+                    getTagsForExperiment={getTagsForExperiment}
+                    onViewExperiment={handleViewExperiment}
+                    onNewExperiment={handleNewExperiment}
+                  />
                 )}
               </>
             )}
