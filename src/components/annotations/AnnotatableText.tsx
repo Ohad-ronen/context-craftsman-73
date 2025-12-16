@@ -1,9 +1,12 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Annotation, CreateAnnotationData } from '@/hooks/useAnnotations';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/hooks/useProfiles';
 import { AnnotationPopover } from './AnnotationPopover';
 import { AnnotationHighlight } from './AnnotationHighlight';
 import { createPortal } from 'react-dom';
+import { extractMentionedUsers } from '@/lib/mentions';
+import { createMentionNotification } from '@/hooks/useNotifications';
 
 interface AnnotatableTextProps {
   content: string;
@@ -32,6 +35,7 @@ export function AnnotatableText({
   onDeleteAnnotation,
 }: AnnotatableTextProps) {
   const { user } = useAuth();
+  const { profiles } = useProfiles();
   const containerRef = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<SelectionState | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -88,7 +92,7 @@ export function AnnotatableText({
   const handleSaveAnnotation = async (note: string) => {
     if (!selection || !user) return;
 
-    await onCreateAnnotation({
+    const annotation = await onCreateAnnotation({
       experiment_id: experimentId,
       field_name: fieldName,
       start_offset: selection.startOffset,
@@ -97,6 +101,23 @@ export function AnnotatableText({
       note,
       user_id: user.id,
     });
+
+    // Create notifications for mentioned users
+    if (annotation) {
+      const mentionedUsers = extractMentionedUsers(note, profiles);
+      for (const mentionedUser of mentionedUsers) {
+        // Don't notify yourself
+        if (mentionedUser.id !== user.id) {
+          await createMentionNotification({
+            mentionedUserId: mentionedUser.id,
+            fromUserId: user.id,
+            experimentId,
+            annotationId: annotation.id,
+            highlightedText: selection.text,
+          });
+        }
+      }
+    }
 
     window.getSelection()?.removeAllRanges();
     setSelection(null);
