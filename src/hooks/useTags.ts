@@ -94,6 +94,8 @@ export function useTags() {
       return null;
     }
     
+    // Manually refetch tags to ensure UI updates
+    await fetchTags();
     return data;
   };
 
@@ -108,6 +110,8 @@ export function useTags() {
       return false;
     }
     
+    // Manually refetch to ensure UI updates
+    await Promise.all([fetchTags(), fetchExperimentTags()]);
     return true;
   };
 
@@ -117,11 +121,17 @@ export function useTags() {
       .insert({ experiment_id: experimentId, tag_id: tagId });
     
     if (error) {
-      if (error.code === '23505') return true; // Already exists
+      if (error.code === '23505') {
+        // Already exists - still refetch to ensure consistency
+        await fetchExperimentTags();
+        return true;
+      }
       console.error('Error adding tag to experiment:', error);
       return false;
     }
     
+    // Manually refetch experiment tags to ensure UI updates
+    await fetchExperimentTags();
     return true;
   };
 
@@ -137,6 +147,8 @@ export function useTags() {
       return false;
     }
     
+    // Manually refetch experiment tags to ensure UI updates
+    await fetchExperimentTags();
     return true;
   };
 
