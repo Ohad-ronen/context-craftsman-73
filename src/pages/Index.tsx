@@ -50,48 +50,14 @@ const Index = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkEvalOpen, setBulkEvalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [chatOpen, setChatOpen] = useState(false);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
-
-  // Filter experiments by selected tags
-  const filteredExperiments = useMemo(() => {
-    if (selectedTagIds.length === 0) return experiments;
-    return experiments.filter(exp => {
-      const expTags = getTagsForExperiment(exp.id);
-      return selectedTagIds.some(tagId => expTags.some(t => t.id === tagId));
-    });
-  }, [experiments, selectedTagIds, getTagsForExperiment]);
 
   // Count unrated experiments with output
   const unratedCount = useMemo(() => {
     return experiments.filter(exp => exp.rating === null && exp.output && exp.output.trim().length > 0).length;
   }, [experiments]);
-
-  const handleToggleTag = (tagId: string) => {
-    setSelectedTagIds(prev => 
-      prev.includes(tagId) 
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
-  };
-
-  const handleClearTagFilter = () => {
-    setSelectedTagIds([]);
-  };
-
-  const handleDeleteTag = async (tagId: string) => {
-    const success = await deleteTag(tagId);
-    if (success) {
-      setSelectedTagIds(prev => prev.filter(id => id !== tagId));
-      toast({
-        title: "Tag deleted",
-        description: "The tag has been removed from the system.",
-      });
-    }
-    return success;
-  };
 
   const handleNewExperiment = () => {
     setSelectedId(null);
@@ -157,8 +123,7 @@ const Index = () => {
       else if (bulkEvalOpen) setBulkEvalOpen(false);
       else if (chatOpen) setChatOpen(false);
       else if (view !== 'list') handleBack();
-      else setSelectedTagIds([]);
-    }, description: 'Close dialog / Go back / Clear filters', category: 'General' },
+    }, description: 'Close dialog / Go back', category: 'General' },
     { key: 'd', handler: () => { setViewMode('dashboard'); setView('list'); }, description: 'Dashboard view', category: 'Navigation' },
     { key: 't', handler: () => { setViewMode('table'); setView('list'); }, description: 'Table view', category: 'Navigation' },
     { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
@@ -194,17 +159,12 @@ const Index = () => {
   };
 
   const sidebarProps = {
-    experimentCount: filteredExperiments.length,
+    experimentCount: experiments.length,
     viewMode,
     onViewModeChange: handleViewModeChange,
     onOpenBulkEval: () => setBulkEvalOpen(true),
     unratedCount,
     onOpenShortcuts: () => setShortcutsOpen(true),
-    tags,
-    selectedTagIds,
-    onToggleTag: handleToggleTag,
-    onClearTagFilter: handleClearTagFilter,
-    onDeleteTag: handleDeleteTag,
   };
 
   if (isLoading) {
@@ -267,24 +227,24 @@ const Index = () => {
               <>
                 {viewMode === 'battle' ? (
                   <OutputBattle 
-                    experiments={filteredExperiments}
+                    experiments={experiments}
                     onViewExperiment={handleViewExperiment}
                   />
                 ) : viewMode === 'insights' ? (
-                  <ExperimentAnalyzer experiments={filteredExperiments} />
+                  <ExperimentAnalyzer experiments={experiments} />
                 ) : viewMode === 'dashboard' ? (
-                  <Dashboard experiments={filteredExperiments} />
+                  <Dashboard experiments={experiments} />
                 ) : viewMode === 'compare' ? (
                   <ABComparison
-                    experiments={filteredExperiments} 
+                    experiments={experiments} 
                     onBack={() => setViewMode('table')} 
                   />
                 ) : viewMode === 'table' ? (
-                  filteredExperiments.length === 0 ? (
+                  experiments.length === 0 ? (
                     <EmptyState onNewExperiment={handleNewExperiment} />
                   ) : (
                     <ExperimentsTable 
-                      experiments={filteredExperiments}
+                      experiments={experiments}
                       onViewExperiment={handleViewExperiment}
                       getTagsForExperiment={getTagsForExperiment}
                       availableTags={tags}
@@ -292,10 +252,11 @@ const Index = () => {
                   )
                 ) : (
                   <FolderView
-                    experiments={filteredExperiments}
+                    experiments={experiments}
                     getTagsForExperiment={getTagsForExperiment}
                     onViewExperiment={handleViewExperiment}
                     onNewExperiment={handleNewExperiment}
+                    availableTags={tags}
                   />
                 )}
               </>
