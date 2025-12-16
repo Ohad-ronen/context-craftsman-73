@@ -180,10 +180,15 @@ const Index = () => {
     );
   };
 
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    setView('list'); // Always return to list view when changing view mode
+  };
+
   const sidebarProps = {
     experimentCount: filteredExperiments.length,
     viewMode,
-    onViewModeChange: setViewMode,
+    onViewModeChange: handleViewModeChange,
     onOpenAnalyzer: () => setAnalyzerOpen(true),
     onOpenBulkEval: () => setBulkEvalOpen(true),
     unratedCount,
