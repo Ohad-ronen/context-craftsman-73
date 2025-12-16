@@ -11,7 +11,8 @@ import {
   Layers,
   Sun,
   Moon,
-  User
+  User,
+  Settings
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -30,6 +31,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
 
@@ -51,18 +60,15 @@ const viewItems = [
   { id: 'battle' as ViewMode, title: 'Output Battle', icon: Swords },
 ];
 
-function ThemeToggleButton() {
+function ThemeToggleMenuItem() {
   const { theme, setTheme } = useTheme();
   const isDark = theme === 'dark';
   
   return (
-    <SidebarMenuButton 
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="w-full justify-start text-muted-foreground hover:text-foreground"
-    >
-      {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-      <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-    </SidebarMenuButton>
+    <DropdownMenuItem onClick={() => setTheme(isDark ? 'light' : 'dark')}>
+      {isDark ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+      {isDark ? 'Light Mode' : 'Dark Mode'}
+    </DropdownMenuItem>
   );
 }
 
@@ -150,25 +156,31 @@ export function AppSidebar({
 
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/50 space-y-1">
-        <SidebarMenuButton 
-          onClick={() => window.location.href = '/profile'}
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
-        >
-          <User className="w-4 h-4" />
-          <span>Profile Settings</span>
-        </SidebarMenuButton>
-        <ThemeToggleButton />
-        {onOpenShortcuts && (
-          <SidebarMenuButton 
-            onClick={onOpenShortcuts}
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
-          >
-            <Keyboard className="w-4 h-4" />
-            <span>Keyboard Shortcuts</span>
-            <kbd className="ml-auto text-[10px] bg-muted px-1.5 py-0.5 rounded">?</kbd>
-          </SidebarMenuButton>
-        )}
+      <SidebarFooter className="p-3 border-t border-border/50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton className="w-full justify-start text-muted-foreground hover:text-foreground">
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+              <User className="w-4 h-4 mr-2" />
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <ThemeToggleMenuItem />
+            <DropdownMenuSeparator />
+            {onOpenShortcuts && (
+              <DropdownMenuItem onClick={onOpenShortcuts}>
+                <Keyboard className="w-4 h-4 mr-2" />
+                Keyboard Shortcuts
+                <DropdownMenuShortcut>?</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );
