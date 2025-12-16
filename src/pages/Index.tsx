@@ -359,7 +359,12 @@ const Index = () => {
           shortcuts={shortcuts}
         />
 
-        <TeamChatPanel isOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+        <TeamChatPanel 
+          isOpen={chatOpen} 
+          onToggle={() => setChatOpen(!chatOpen)} 
+          experiments={experiments}
+          onViewExperiment={handleViewExperiment}
+        />
       </div>
     </SidebarProvider>
   );
