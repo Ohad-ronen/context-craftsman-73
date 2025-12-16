@@ -35,7 +35,7 @@ type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
-  const { tags, getTagsForExperiment, createTag, addTagToExperiment, removeTagFromExperiment } = useTags();
+  const { tags, getTagsForExperiment, createTag, deleteTag, addTagToExperiment, removeTagFromExperiment } = useTags();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
@@ -73,6 +73,18 @@ const Index = () => {
 
   const handleClearTagFilter = () => {
     setSelectedTagIds([]);
+  };
+
+  const handleDeleteTag = async (tagId: string) => {
+    const success = await deleteTag(tagId);
+    if (success) {
+      setSelectedTagIds(prev => prev.filter(id => id !== tagId));
+      toast({
+        title: "Tag deleted",
+        description: "The tag has been removed from the system.",
+      });
+    }
+    return success;
   };
 
   const handleNewExperiment = () => {
@@ -180,6 +192,7 @@ const Index = () => {
     selectedTagIds,
     onToggleTag: handleToggleTag,
     onClearTagFilter: handleClearTagFilter,
+    onDeleteTag: handleDeleteTag,
   };
 
   if (isLoading) {
