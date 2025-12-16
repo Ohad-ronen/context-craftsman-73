@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,16 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
   const [compareSelection, setCompareSelection] = useState<string[]>([]);
   const { toast } = useToast();
   const { analyses, saveAnalysis, deleteAnalysis } = useExperimentAnalyses();
+
+  // Load the latest analysis on mount
+  useEffect(() => {
+    if (analyses.length > 0 && !analysis && !selectedSavedAnalysis) {
+      const latest = analyses[0]; // analyses are ordered by created_at desc
+      setSelectedSavedAnalysis(latest);
+      setAnalysis(latest.analysis);
+      setAnalysisTitle(latest.title);
+    }
+  }, [analyses]);
 
   const runAnalysis = async () => {
     if (experiments.length < 2) {
