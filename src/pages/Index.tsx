@@ -6,8 +6,6 @@ import { ExperimentForm } from '@/components/ExperimentForm';
 import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
-import { CSVImport } from '@/components/CSVImport';
-import { GoogleSheetsImport } from '@/components/GoogleSheetsImport';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
 
 import { useToast } from '@/hooks/use-toast';
@@ -101,27 +99,12 @@ const Index = () => {
     );
   }
 
-  const handleCSVImport = async (data: ExperimentFormData[]) => {
-    for (const exp of data) {
-      await addExperiment(exp);
-    }
-  };
-
-  const handleGoogleSheetsImport = async (
-    data: ExperimentFormData[],
-    onProgress?: (current: number, total: number) => void
-  ): Promise<{ success: number; failed: number }> => {
-    return await createExperimentsRowByRow(data, onProgress);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header 
         experimentCount={experiments.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        csvImport={<CSVImport onImport={handleCSVImport} />}
-        googleSheetsImport={<GoogleSheetsImport onImport={handleGoogleSheetsImport} />}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
       />
       
