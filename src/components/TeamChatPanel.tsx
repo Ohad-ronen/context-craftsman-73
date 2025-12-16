@@ -8,10 +8,11 @@ import { useChatReactions, MessageReaction } from '@/hooks/useChatReactions';
 import { useAuth } from '@/hooks/useAuth';
 import { Experiment } from '@/hooks/useExperiments';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X, Pencil, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 const EMOJI_OPTIONS = ['👍', '❤️', '😂', '🎉', '🔥', '👀', '💯', '🚀'];
 
@@ -63,11 +64,13 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
   const { user } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
   const avatarUrl = user?.user_metadata?.avatar_url;
-  const { messages, isLoading, sendMessage, deleteMessage, typingUsers, setTyping, onlineUsers } = useTeamChat(user?.id, displayName, avatarUrl);
+  const { messages, isLoading, sendMessage, deleteMessage, updateMessage, typingUsers, setTyping, onlineUsers } = useTeamChat(user?.id, displayName, avatarUrl);
   const { reactions, toggleReaction } = useChatReactions();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleReaction = (messageId: string, emoji: string) => {
@@ -101,6 +104,24 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
       setReplyingTo(null);
     }
     setIsSending(false);
+  };
+
+  const startEditing = (msg: ChatMessage) => {
+    setEditingMessageId(msg.id);
+    setEditingText(msg.message);
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditingText('');
+  };
+
+  const saveEdit = async () => {
+    if (!editingMessageId || !editingText.trim()) return;
+    const success = await updateMessage(editingMessageId, editingText.trim());
+    if (success) {
+      cancelEditing();
+    }
   };
 
   const getInitials = (name: string | null, email: string | null) => {
@@ -230,13 +251,24 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                         <span className="text-[10px] text-muted-foreground">
                           {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                         </span>
-                        {isOwnMessage && (
-                          <button
-                            onClick={() => deleteMessage(msg.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                          </button>
+                        {msg.edited_at && (
+                          <span className="text-[10px] text-muted-foreground italic">(edited)</span>
+                        )}
+                        {isOwnMessage && editingMessageId !== msg.id && (
+                          <>
+                            <button
+                              onClick={() => startEditing(msg)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Pencil className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                            </button>
+                            <button
+                              onClick={() => deleteMessage(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          </>
                         )}
                       </div>
                       {/* Reply context */}
@@ -251,20 +283,41 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                           <p className="truncate">{msg.reply_to.message}</p>
                         </div>
                       )}
-                      <div
-                        className={cn(
-                          "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words text-left",
-                          isOwnMessage
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        )}
-                      >
-                        <MessageContent 
-                          message={msg.message} 
-                          isOwnMessage={isOwnMessage}
-                          onViewExperiment={onViewExperiment}
-                        />
-                      </div>
+                      {editingMessageId === msg.id ? (
+                        <div className="flex items-center gap-1 max-w-[85%]">
+                          <Input
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEdit();
+                              if (e.key === 'Escape') cancelEditing();
+                            }}
+                            className="h-8 text-sm"
+                            autoFocus
+                          />
+                          <button onClick={saveEdit} className="p-1 hover:bg-muted rounded">
+                            <Check className="h-4 w-4 text-green-500" />
+                          </button>
+                          <button onClick={cancelEditing} className="p-1 hover:bg-muted rounded">
+                            <X className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className={cn(
+                            "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words text-left",
+                            isOwnMessage
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          )}
+                        >
+                          <MessageContent 
+                            message={msg.message} 
+                            isOwnMessage={isOwnMessage}
+                            onViewExperiment={onViewExperiment}
+                          />
+                        </div>
+                      )}
                       
                       {/* Reactions row */}
                       <div className={cn("flex items-center gap-1 mt-1 flex-wrap", isOwnMessage && "justify-end")}>

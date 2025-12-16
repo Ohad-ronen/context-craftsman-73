@@ -14,6 +14,7 @@ export interface ChatMessage {
   user_id: string | null;
   message: string;
   created_at: string;
+  edited_at: string | null;
   reply_to_id: string | null;
   profile?: ChatMessageProfile | null;
   reply_to?: {
@@ -134,6 +135,21 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
             
             setMessages(prev => [...prev, { ...data, reply_to } as ChatMessage]);
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'team_chat_messages'
+        },
+        (payload) => {
+          setMessages(prev => prev.map(m => 
+            m.id === payload.new.id 
+              ? { ...m, message: payload.new.message, edited_at: payload.new.edited_at }
+              : m
+          ));
         }
       )
       .on(
@@ -262,11 +278,31 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
     }
   };
 
+  const updateMessage = async (id: string, newMessage: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('team_chat_messages')
+        .update({ 
+          message: newMessage,
+          edited_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating message:', error);
+      toast.error('Failed to update message');
+      return false;
+    }
+  };
+
   return {
     messages,
     isLoading,
     sendMessage,
     deleteMessage,
+    updateMessage,
     refetch: fetchMessages,
     typingUsers,
     setTyping,
