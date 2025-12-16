@@ -17,6 +17,7 @@ import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
+import { NotificationCenter } from '@/components/NotificationCenter';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -207,8 +208,9 @@ const Index = () => {
           <AppSidebar {...sidebarProps} experimentCount={0} />
           <div className="flex-1 flex flex-col">
             <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-40">
-              <div className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center justify-between px-4 py-3">
                 <SidebarTrigger className="h-8 w-8" />
+                <NotificationCenter />
               </div>
             </header>
             <main className="flex-1 p-6">
@@ -227,11 +229,14 @@ const Index = () => {
         
         <div className="flex-1 flex flex-col min-w-0">
           <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-40">
-            <div className="flex items-center gap-3 px-4 py-3">
-              <SidebarTrigger className="h-8 w-8" />
-              <span className="text-sm text-muted-foreground capitalize">
-                {view === 'list' ? viewMode : view} View
-              </span>
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="h-8 w-8" />
+                <span className="text-sm text-muted-foreground capitalize">
+                  {view === 'list' ? viewMode : view} View
+                </span>
+              </div>
+              <NotificationCenter />
             </div>
           </header>
 
