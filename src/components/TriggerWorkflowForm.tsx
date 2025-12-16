@@ -80,31 +80,31 @@ export function TriggerWorkflowForm({ collapsed = false }: TriggerWorkflowFormPr
   };
 
   const triggerButton = (
-    <Button 
-      className={collapsed ? "w-8 h-8 p-0" : "gap-2 w-full"}
-      size={collapsed ? "icon" : "default"}
-    >
-      <Plus className="w-4 h-4" />
-      {!collapsed && "New Experiment"}
-    </Button>
+    <DialogTrigger asChild>
+      <Button 
+        className={collapsed ? "w-8 h-8 p-0" : "gap-2 w-full"}
+        size={collapsed ? "icon" : "default"}
+      >
+        <Plus className="w-4 h-4" />
+        {!collapsed && "New Experiment"}
+      </Button>
+    </DialogTrigger>
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {triggerButton}
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              New Experiment
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          triggerButton
-        )}
-      </DialogTrigger>
+      {collapsed ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {triggerButton}
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            New Experiment
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        triggerButton
+      )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
