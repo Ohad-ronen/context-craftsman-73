@@ -19,6 +19,7 @@ import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { TeamChatPanel } from '@/components/TeamChatPanel';
+import { OnboardingTour } from '@/components/OnboardingTour';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -237,7 +238,9 @@ const Index = () => {
                   {view === 'list' ? viewMode : view} View
                 </span>
               </div>
-              <NotificationCenter />
+              <div data-tour="notifications">
+                <NotificationCenter />
+              </div>
             </div>
           </header>
 
@@ -359,12 +362,16 @@ const Index = () => {
           shortcuts={shortcuts}
         />
 
-        <TeamChatPanel 
-          isOpen={chatOpen} 
-          onToggle={() => setChatOpen(!chatOpen)} 
-          experiments={experiments}
-          onViewExperiment={handleViewExperiment}
-        />
+        <div data-tour="team-chat">
+          <TeamChatPanel 
+            isOpen={chatOpen} 
+            onToggle={() => setChatOpen(!chatOpen)} 
+            experiments={experiments}
+            onViewExperiment={handleViewExperiment}
+          />
+        </div>
+
+        <OnboardingTour />
       </div>
     </SidebarProvider>
   );

@@ -343,6 +343,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          has_completed_tour: boolean | null
           id: string
         }
         Insert: {
@@ -350,6 +351,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          has_completed_tour?: boolean | null
           id: string
         }
         Update: {
@@ -357,6 +359,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          has_completed_tour?: boolean | null
           id?: string
         }
         Relationships: []

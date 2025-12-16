@@ -127,14 +127,14 @@ export function AppSidebar({
 
       <SidebarContent>
         {/* Primary Action */}
-        <SidebarGroup className="p-3">
+        <SidebarGroup className="p-3" data-tour="trigger-workflow">
           <TriggerWorkflowForm />
         </SidebarGroup>
 
         <SidebarSeparator />
 
         {/* Views */}
-        <SidebarGroup>
+        <SidebarGroup data-tour="view-modes">
           <SidebarGroupLabel>Views</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -160,7 +160,7 @@ export function AppSidebar({
         <SidebarSeparator />
 
         {/* AI Tools */}
-        <SidebarGroup>
+        <SidebarGroup data-tour="ai-tools">
           <SidebarGroupLabel>AI Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -185,7 +185,7 @@ export function AppSidebar({
 
         {/* Filters */}
         {onToggleTag && onClearTagFilter && tags.length > 0 && (
-          <SidebarGroup>
+          <SidebarGroup data-tour="tag-filters">
             <SidebarGroupLabel className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Tag className="w-3.5 h-3.5" />

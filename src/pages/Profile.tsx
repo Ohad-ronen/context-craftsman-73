@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ArrowLeft, Camera, Loader2, LogOut, Save, User } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, LogOut, Save, User, RotateCcw } from 'lucide-react';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -117,6 +117,22 @@ export default function Profile() {
     } else {
       toast.success('Signed out successfully');
       navigate('/auth');
+    }
+  };
+
+  const handleRestartTour = async () => {
+    if (!user) return;
+    
+    try {
+      await supabase
+        .from('profiles')
+        .update({ has_completed_tour: false })
+        .eq('id', user.id);
+      
+      toast.success('Tour will start when you return to the dashboard');
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to restart tour');
     }
   };
 
@@ -232,6 +248,25 @@ export default function Profile() {
                   Save Changes
                 </>
               )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Onboarding Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Onboarding Tour
+            </CardTitle>
+            <CardDescription>
+              Take a guided tour of the application features
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={handleRestartTour}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Restart Tour
             </Button>
           </CardContent>
         </Card>
