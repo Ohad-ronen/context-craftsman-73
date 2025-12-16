@@ -385,6 +385,7 @@ export type Database = {
       team_chat_messages: {
         Row: {
           created_at: string
+          edited_at: string | null
           id: string
           message: string
           reply_to_id: string | null
@@ -392,6 +393,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          edited_at?: string | null
           id?: string
           message: string
           reply_to_id?: string | null
@@ -399,6 +401,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          edited_at?: string | null
           id?: string
           message?: string
           reply_to_id?: string | null
