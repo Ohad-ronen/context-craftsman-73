@@ -132,8 +132,6 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
-
         {/* AI Tools */}
         <SidebarGroup data-tour="ai-tools">
           <SidebarGroupLabel>AI Tools</SidebarGroupLabel>
