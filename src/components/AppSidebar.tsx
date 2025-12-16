@@ -106,8 +106,6 @@ export function AppSidebar({
           <TriggerWorkflowForm />
         </SidebarGroup>
 
-        <SidebarSeparator />
-
         {/* Views */}
         <SidebarGroup data-tour="view-modes">
           <SidebarGroupLabel>Views</SidebarGroupLabel>
