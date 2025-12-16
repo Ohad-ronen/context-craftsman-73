@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { MessageSquarePlus } from 'lucide-react';
+import { MentionInput } from './MentionInput';
 
 interface AnnotationPopoverProps {
   selectedText: string;
@@ -59,12 +59,13 @@ export function AnnotationPopover({
             </p>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Your note:</label>
-            <Textarea
+            <label className="text-xs font-medium text-muted-foreground">
+              Your note: <span className="text-muted-foreground/60">(use @ to mention users)</span>
+            </label>
+            <MentionInput
               value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add your observation or insight..."
-              className="min-h-[80px] text-sm resize-none"
+              onChange={setNote}
+              placeholder="Add your observation or insight... Use @ to mention someone"
               autoFocus
             />
           </div>

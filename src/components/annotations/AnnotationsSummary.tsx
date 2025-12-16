@@ -9,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { MentionText } from './MentionText';
 
 interface AnnotationsSummaryProps {
   annotations: Annotation[];
@@ -108,7 +109,7 @@ export function AnnotationsSummary({
                         <p className="text-xs text-amber-600 dark:text-amber-400 truncate mb-1">
                           "{annotation.highlighted_text}"
                         </p>
-                        <p className="text-sm line-clamp-2">{annotation.note}</p>
+                        <MentionText text={annotation.note} className="text-sm line-clamp-2" />
                         {annotation.profile && (
                           <p className="text-xs text-muted-foreground mt-1">
                             by {annotation.profile.display_name || annotation.profile.email || 'Unknown'}
