@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, X, Save, History, Trash2, ChevronLeft } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, X, Save, History, Trash2, ChevronLeft, GitCompareArrows } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Experiment } from "@/hooks/useExperiments";
 import { useExperimentAnalyses, Analysis, SavedAnalysis } from "@/hooks/useExperimentAnalyses";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnalysisComparison } from "@/components/AnalysisComparison";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,15 +29,18 @@ interface ExperimentAnalyzerProps {
   onClose: () => void;
 }
 
+type ViewMode = 'analyzer' | 'history' | 'compare-select' | 'compare-view';
+
 export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentAnalyzerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('analyzer');
   const [selectedSavedAnalysis, setSelectedSavedAnalysis] = useState<SavedAnalysis | null>(null);
   const [analysisTitle, setAnalysisTitle] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
+  const [compareSelection, setCompareSelection] = useState<string[]>([]);
   const { toast } = useToast();
   const { analyses, saveAnalysis, deleteAnalysis } = useExperimentAnalyses();
 
@@ -95,7 +100,7 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
     setSelectedSavedAnalysis(saved);
     setAnalysis(saved.analysis);
     setAnalysisTitle(saved.title);
-    setShowHistory(false);
+    setViewMode('analyzer');
   };
 
   const handleDeleteAnalysis = async () => {
@@ -110,39 +115,94 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
     }
   };
 
+  const handleToggleCompareSelection = (id: string) => {
+    setCompareSelection(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], id]; // Replace oldest selection
+      }
+      return [...prev, id];
+    });
+  };
+
+  const handleStartComparison = () => {
+    if (compareSelection.length === 2) {
+      setViewMode('compare-view');
+    }
+  };
+
+  const getSelectedAnalyses = () => {
+    return compareSelection
+      .map(id => analyses.find(a => a.id === id))
+      .filter((a): a is SavedAnalysis => a !== undefined);
+  };
+
   const currentAnalysis = analysis;
 
   if (!isOpen) return null;
+
+  const getHeaderTitle = () => {
+    switch (viewMode) {
+      case 'history': return 'Analysis History';
+      case 'compare-select': return 'Compare Analyses';
+      case 'compare-view': return 'Analysis Comparison';
+      default: return 'Experiment Insights Analyzer';
+    }
+  };
+
+  const getHeaderSubtitle = () => {
+    switch (viewMode) {
+      case 'history': return `${analyses.length} saved analyses`;
+      case 'compare-select': return `Select 2 analyses to compare (${compareSelection.length}/2 selected)`;
+      case 'compare-view': return 'Side-by-side comparison of insights';
+      default: return `AI-powered analysis of ${experiments.length} experiments`;
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-4 md:inset-10 overflow-auto bg-background border rounded-lg shadow-lg">
         <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {showHistory && (
-              <Button variant="ghost" size="icon" onClick={() => setShowHistory(false)}>
+            {viewMode !== 'analyzer' && (
+              <Button variant="ghost" size="icon" onClick={() => {
+                if (viewMode === 'compare-view') {
+                  setViewMode('compare-select');
+                } else {
+                  setViewMode('analyzer');
+                  setCompareSelection([]);
+                }
+              }}>
                 <ChevronLeft className="h-5 w-5" />
               </Button>
             )}
             <Brain className="h-6 w-6 text-primary" />
             <div>
-              <h2 className="text-xl font-semibold">
-                {showHistory ? "Analysis History" : "Experiment Insights Analyzer"}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {showHistory 
-                  ? `${analyses.length} saved analyses`
-                  : `AI-powered analysis of ${experiments.length} experiments`
-                }
-              </p>
+              <h2 className="text-xl font-semibold">{getHeaderTitle()}</h2>
+              <p className="text-sm text-muted-foreground">{getHeaderSubtitle()}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!showHistory && (
+            {viewMode === 'analyzer' && (
               <>
+                {analyses.length >= 2 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setCompareSelection([]);
+                      setViewMode('compare-select');
+                    }}
+                    className="gap-2"
+                  >
+                    <GitCompareArrows className="h-4 w-4" />
+                    Compare
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
-                  onClick={() => setShowHistory(true)}
+                  onClick={() => setViewMode('history')}
                   className="gap-2"
                 >
                   <History className="h-4 w-4" />
@@ -163,6 +223,15 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
                 </Button>
               </>
             )}
+            {viewMode === 'compare-select' && (
+              <Button 
+                onClick={handleStartComparison} 
+                disabled={compareSelection.length !== 2}
+              >
+                <GitCompareArrows className="mr-2 h-4 w-4" />
+                Compare Selected
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
@@ -170,7 +239,8 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
         </div>
 
         <div className="p-6">
-          {showHistory ? (
+          {/* History View */}
+          {viewMode === 'history' && (
             <div className="space-y-4">
               {analyses.length === 0 ? (
                 <Card className="border-dashed">
@@ -223,7 +293,75 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
                 </ScrollArea>
               )}
             </div>
-          ) : (
+          )}
+
+          {/* Compare Selection View */}
+          {viewMode === 'compare-select' && (
+            <div className="space-y-4">
+              {analyses.length < 2 ? (
+                <Card className="border-dashed">
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <GitCompareArrows className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Not Enough Analyses</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        You need at least 2 saved analyses to compare them.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ScrollArea className="h-[calc(100vh-220px)]">
+                  <div className="space-y-3">
+                    {analyses.map((saved, index) => {
+                      const isSelected = compareSelection.includes(saved.id);
+                      const selectionIndex = compareSelection.indexOf(saved.id);
+                      return (
+                        <Card 
+                          key={saved.id} 
+                          className={`cursor-pointer transition-colors ${
+                            isSelected 
+                              ? 'border-primary bg-primary/5' 
+                              : 'hover:bg-muted/50'
+                          }`}
+                          onClick={() => handleToggleCompareSelection(saved.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-primary/50">
+                                {isSelected && (
+                                  <Badge variant="default" className="h-6 w-6 p-0 flex items-center justify-center">
+                                    {selectionIndex === 0 ? 'A' : 'B'}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-medium">{saved.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {saved.experiment_count} experiments • {formatDistanceToNow(new Date(saved.created_at), { addSuffix: true })}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          )}
+
+          {/* Compare View */}
+          {viewMode === 'compare-view' && compareSelection.length === 2 && (
+            <AnalysisComparison 
+              analysisA={getSelectedAnalyses()[0]} 
+              analysisB={getSelectedAnalyses()[1]} 
+            />
+          )}
+
+          {/* Analyzer View */}
+          {viewMode === 'analyzer' && (
             <>
               {error && (
                 <Card className="border-destructive mb-6">
