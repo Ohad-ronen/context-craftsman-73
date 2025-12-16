@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
 import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
-import { JsonViewer } from './JsonViewer';
-import { AnnotatableText, AnnotationsSummary } from './annotations';
+import { AnnotatableText, AnnotatableJson, AnnotationsSummary } from './annotations';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -65,13 +64,13 @@ export function ExperimentDetail({
     }
   };
 
-  // Format content - pretty print JSON if valid, otherwise return as-is
-  const formatContent = (str: string): string => {
+  // Check if content is JSON
+  const isJson = (str: string): boolean => {
     try {
-      const parsed = JSON.parse(str);
-      return JSON.stringify(parsed, null, 2);
+      JSON.parse(str);
+      return true;
     } catch {
-      return str;
+      return false;
     }
   };
 
@@ -151,7 +150,7 @@ export function ExperimentDetail({
           if (!content) return null; // Skip empty sections
 
           const fieldAnnotations = getAnnotationsForField(section.key);
-          const formattedContent = formatContent(content);
+          const contentIsJson = isJson(content);
           
           return (
             <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
@@ -170,15 +169,27 @@ export function ExperimentDetail({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <AnnotatableText
-                    content={formattedContent}
-                    fieldName={section.key}
-                    experimentId={experiment.id}
-                    annotations={fieldAnnotations}
-                    onCreateAnnotation={createAnnotation}
-                    onUpdateAnnotation={updateAnnotation}
-                    onDeleteAnnotation={deleteAnnotation}
-                  />
+                  {contentIsJson ? (
+                    <AnnotatableJson
+                      content={content}
+                      fieldName={section.key}
+                      experimentId={experiment.id}
+                      annotations={fieldAnnotations}
+                      onCreateAnnotation={createAnnotation}
+                      onUpdateAnnotation={updateAnnotation}
+                      onDeleteAnnotation={deleteAnnotation}
+                    />
+                  ) : (
+                    <AnnotatableText
+                      content={content}
+                      fieldName={section.key}
+                      experimentId={experiment.id}
+                      annotations={fieldAnnotations}
+                      onCreateAnnotation={createAnnotation}
+                      onUpdateAnnotation={updateAnnotation}
+                      onDeleteAnnotation={deleteAnnotation}
+                    />
+                  )}
                 </CardContent>
               </Card>
               {index < sections.length - 1 && content && (
