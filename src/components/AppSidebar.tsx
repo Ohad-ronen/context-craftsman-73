@@ -112,22 +112,9 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
-        <div className={cn(
-          "flex items-center gap-3",
-          isCollapsed && "justify-center"
-        )}>
-          <div className="p-2 rounded-xl bg-primary/10">
-            <Layers className="w-5 h-5 text-primary" />
-          </div>
-          {!isCollapsed && (
-            <div className="animate-fade-in">
-              <h1 className="text-base font-bold">Agent Tracker</h1>
-              <p className="text-xs text-muted-foreground">
-                {experimentCount} experiment{experimentCount !== 1 ? 's' : ''}
-              </p>
-            </div>
-          )}
+      <SidebarHeader className="p-3 flex justify-center">
+        <div className="p-2 rounded-xl bg-primary/10">
+          <Layers className="w-5 h-5 text-primary" />
         </div>
       </SidebarHeader>
 
