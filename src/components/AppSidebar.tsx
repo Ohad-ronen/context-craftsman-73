@@ -130,7 +130,7 @@ export function AppSidebar({
 
         {/* AI Tools */}
         <SidebarGroup data-tour="ai-tools">
-          <SidebarGroupLabel>AI Tools</SidebarGroupLabel>
+          <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {onOpenBulkEval && (
