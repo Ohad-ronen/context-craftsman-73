@@ -55,8 +55,9 @@ function MessageContent({
 }
 
 export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment }: TeamChatPanelProps) {
-  const { messages, isLoading, sendMessage, deleteMessage } = useTeamChat();
   const { user } = useAuth();
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
+  const { messages, isLoading, sendMessage, deleteMessage, typingUsers, setTyping } = useTeamChat(user?.id, displayName);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,15 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleInputChange = (value: string) => {
+    setNewMessage(value);
+    if (value.trim()) {
+      setTyping(true);
+    } else {
+      setTyping(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || isSending) return;
@@ -191,6 +201,23 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
               })}
             </div>
           )}
+          
+          {/* Typing indicator */}
+          {typingUsers.length > 0 && (
+            <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+              <div className="flex gap-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>•</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>•</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>•</span>
+              </div>
+              <span>
+                {typingUsers.length === 1 
+                  ? `${typingUsers[0].displayName} is typing...`
+                  : `${typingUsers.map(u => u.displayName).join(', ')} are typing...`
+                }
+              </span>
+            </div>
+          )}
         </ScrollArea>
 
         {/* Input */}
@@ -199,7 +226,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
             <div className="flex gap-2">
               <ChatInputWithMentions
                 value={newMessage}
-                onChange={setNewMessage}
+                onChange={handleInputChange}
                 onSubmit={handleSendMessage}
                 experiments={experiments}
                 placeholder="Type # to mention experiment..."
