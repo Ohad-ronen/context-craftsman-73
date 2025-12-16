@@ -112,10 +112,13 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className="p-3 flex justify-center">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <Layers className="w-5 h-5 text-primary" />
-        </div>
+      <SidebarHeader className={cn("p-3 flex justify-center", isCollapsed && "px-1")}>
+        <h1 className={cn(
+          "font-bold text-primary transition-all duration-200",
+          isCollapsed ? "text-sm" : "text-lg"
+        )}>
+          {isCollapsed ? "AB" : "Ask Boards"}
+        </h1>
       </SidebarHeader>
 
       <SidebarContent>
