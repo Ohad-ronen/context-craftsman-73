@@ -338,12 +338,12 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                         {getInitials(msg.profile?.display_name || null, msg.profile?.email || null)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className={cn("flex-1 min-w-0", isOwnMessage && "text-right")}>
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className={cn("flex-1 min-w-0 overflow-hidden", isOwnMessage && "flex flex-col items-end")}>
+                      <div className={cn("flex items-center gap-2 mb-1 flex-wrap", isOwnMessage && "justify-end")}>
                         {!isOwnMessage && (
-                          <span className="text-xs font-medium truncate">{msgDisplayName}</span>
+                          <span className="text-xs font-medium truncate max-w-[120px]">{msgDisplayName}</span>
                         )}
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                           {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                         </span>
                         {msg.edited_at && (
@@ -368,18 +368,15 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                       </div>
                       {/* Reply context */}
                       {msg.reply_to && (
-                        <div className={cn(
-                          "mb-1 px-2 py-1 rounded border-l-2 border-primary/50 bg-muted/50 text-xs text-muted-foreground max-w-[85%]",
-                          isOwnMessage ? "ml-auto" : "mr-auto"
-                        )}>
-                          <span className="font-medium">
+                        <div className="mb-1 px-2 py-1 rounded border-l-2 border-primary/50 bg-muted/50 text-xs text-muted-foreground max-w-full overflow-hidden">
+                          <span className="font-medium truncate block">
                             {msg.reply_to.profile?.display_name || msg.reply_to.profile?.email?.split('@')[0] || 'Unknown'}
                           </span>
                           <p className="truncate">{msg.reply_to.message}</p>
                         </div>
                       )}
                       {editingMessageId === msg.id ? (
-                        <div className="flex items-center gap-1 max-w-[85%]">
+                        <div className="flex items-center gap-1 w-full max-w-full">
                           <Input
                             value={editingText}
                             onChange={(e) => setEditingText(e.target.value)}
@@ -400,11 +397,12 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                       ) : (
                         <div
                           className={cn(
-                            "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words text-left",
+                            "px-3 py-2 rounded-lg text-sm max-w-full break-words",
                             isOwnMessage
                               ? "bg-primary text-primary-foreground"
                               : "bg-muted"
                           )}
+                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                         >
                           <MessageContent 
                             message={msg.message} 
