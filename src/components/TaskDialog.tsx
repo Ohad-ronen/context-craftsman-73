@@ -178,12 +178,12 @@ export function TaskDialog({
           {experiments.length > 0 && (
             <div className="space-y-2">
               <Label>Link to Experiment</Label>
-              <Select value={experimentId} onValueChange={setExperimentId}>
+              <Select value={experimentId || 'none'} onValueChange={(v) => setExperimentId(v === 'none' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select an experiment (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {experiments.map((exp) => (
                     <SelectItem key={exp.id} value={exp.id}>
                       <div className="flex items-center gap-2">
