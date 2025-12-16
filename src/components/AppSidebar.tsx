@@ -114,11 +114,11 @@ export function AppSidebar({
     <Sidebar collapsible="icon" className="border-r border-border/50">
       <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
         <div className={cn(
-          "flex items-center gap-3 group hover-lift cursor-default",
+          "flex items-center gap-3",
           isCollapsed && "justify-center"
         )}>
-          <div className="p-2 rounded-xl bg-primary/10 transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
-            <Layers className="w-5 h-5 text-primary transition-transform duration-300 group-hover:scale-110" />
+          <div className="p-2 rounded-xl bg-primary/10">
+            <Layers className="w-5 h-5 text-primary" />
           </div>
           {!isCollapsed && (
             <div className="animate-fade-in">
