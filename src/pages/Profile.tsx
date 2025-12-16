@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,10 +16,18 @@ export default function Profile() {
   const { user, profile, signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [displayName, setDisplayName] = useState(profile?.display_name || '');
+  const [displayName, setDisplayName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  // Sync state with profile when it loads
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || '');
+      setAvatarUrl(profile.avatar_url || '');
+    }
+  }, [profile]);
 
   const initials = displayName
     ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
