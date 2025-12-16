@@ -114,7 +114,7 @@ export function AppSidebar({
     <Sidebar collapsible="icon" className="border-r border-border/50">
       <SidebarHeader className={cn("p-3 flex justify-center", isCollapsed && "px-1")}>
         <h1 className={cn(
-          "font-logo font-extrabold text-primary tracking-tight transition-all duration-200 animate-fade-in",
+          "font-logo font-extrabold tracking-tight transition-all duration-200 animate-fade-in text-gradient",
           isCollapsed ? "text-sm" : "text-xl"
         )}>
           {isCollapsed ? "AB" : "Ask Boards"}
