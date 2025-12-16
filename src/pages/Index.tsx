@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useExperiments, ExperimentFormData } from '@/hooks/useExperiments';
+import { useTags } from '@/hooks/useTags';
 import { Header } from '@/components/Header';
 import { ExperimentCard } from '@/components/ExperimentCard';
 import { ExperimentForm } from '@/components/ExperimentForm';
@@ -27,6 +28,7 @@ type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
+  const { tags, getTagsForExperiment, createTag, addTagToExperiment, removeTagFromExperiment } = useTags();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
@@ -34,8 +36,30 @@ const Index = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analyzerOpen, setAnalyzerOpen] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
+
+  // Filter experiments by selected tags
+  const filteredExperiments = useMemo(() => {
+    if (selectedTagIds.length === 0) return experiments;
+    return experiments.filter(exp => {
+      const expTags = getTagsForExperiment(exp.id);
+      return selectedTagIds.some(tagId => expTags.some(t => t.id === tagId));
+    });
+  }, [experiments, selectedTagIds, getTagsForExperiment]);
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTagIds(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const handleClearTagFilter = () => {
+    setSelectedTagIds([]);
+  };
 
   const handleNewExperiment = () => {
     setSelectedId(null);
@@ -104,14 +128,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        experimentCount={experiments.length}
+        experimentCount={filteredExperiments.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
+        tags={tags}
+        selectedTagIds={selectedTagIds}
+        onToggleTag={handleToggleTag}
+        onClearTagFilter={handleClearTagFilter}
       />
       
       <ExperimentAnalyzer
-        experiments={experiments}
+        experiments={filteredExperiments}
         isOpen={analyzerOpen}
         onClose={() => setAnalyzerOpen(false)}
       />
@@ -120,25 +148,27 @@ const Index = () => {
         {view === 'list' && (
           <>
             {viewMode === 'dashboard' ? (
-              <Dashboard experiments={experiments} />
+              <Dashboard experiments={filteredExperiments} />
             ) : viewMode === 'compare' ? (
               <ABComparison 
-                experiments={experiments} 
+                experiments={filteredExperiments} 
                 onBack={() => setViewMode('table')} 
               />
-            ) : experiments.length === 0 ? (
+            ) : filteredExperiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
             ) : viewMode === 'table' ? (
               <ExperimentsTable 
-                experiments={experiments}
+                experiments={filteredExperiments}
                 onViewExperiment={handleViewExperiment}
+                getTagsForExperiment={getTagsForExperiment}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {experiments.map((experiment, index) => (
+                {filteredExperiments.map((experiment, index) => (
                   <div key={experiment.id} style={{ animationDelay: `${index * 50}ms` }}>
                     <ExperimentCard
                       experiment={experiment}
+                      tags={getTagsForExperiment(experiment.id)}
                       onClick={() => handleViewExperiment(experiment.id)}
                     />
                   </div>
@@ -188,6 +218,11 @@ const Index = () => {
               onUpdate={async (id, data) => {
                 await updateExperiment(id, data);
               }}
+              tags={tags}
+              experimentTags={getTagsForExperiment(selectedExperiment.id)}
+              onAddTag={(tagId) => addTagToExperiment(selectedExperiment.id, tagId)}
+              onRemoveTag={(tagId) => removeTagFromExperiment(selectedExperiment.id, tagId)}
+              onCreateTag={createTag}
             />
           </div>
         )}
