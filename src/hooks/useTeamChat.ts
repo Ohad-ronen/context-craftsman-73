@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -15,9 +15,17 @@ export interface ChatMessage {
   } | null;
 }
 
-export function useTeamChat() {
+export interface TypingUser {
+  userId: string;
+  displayName: string;
+}
+
+export function useTeamChat(currentUserId?: string, currentUserName?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -42,9 +50,9 @@ export function useTeamChat() {
   useEffect(() => {
     fetchMessages();
 
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('team-chat')
+    // Subscribe to real-time updates for messages
+    const messagesChannel = supabase
+      .channel('team-chat-messages')
       .on(
         'postgres_changes',
         {
@@ -53,7 +61,6 @@ export function useTeamChat() {
           table: 'team_chat_messages'
         },
         async (payload) => {
-          // Fetch the full message with profile
           const { data, error } = await supabase
             .from('team_chat_messages')
             .select(`
@@ -82,12 +89,74 @@ export function useTeamChat() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [fetchMessages]);
 
+  // Presence channel for typing indicators
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const presenceChannel = supabase.channel('team-chat-presence', {
+      config: { presence: { key: currentUserId } }
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const typing: TypingUser[] = [];
+        
+        Object.entries(state).forEach(([key, presences]) => {
+          if (key !== currentUserId && presences.length > 0) {
+            const presence = presences[0] as { isTyping?: boolean; displayName?: string };
+            if (presence.isTyping) {
+              typing.push({
+                userId: key,
+                displayName: presence.displayName || 'Someone'
+              });
+            }
+          }
+        });
+        
+        setTypingUsers(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ isTyping: false, displayName: currentUserName });
+        }
+      });
+
+    channelRef.current = presenceChannel;
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+      channelRef.current = null;
+    };
+  }, [currentUserId, currentUserName]);
+
+  const setTyping = useCallback(async (isTyping: boolean) => {
+    if (!channelRef.current) return;
+    
+    await channelRef.current.track({ isTyping, displayName: currentUserName });
+    
+    // Auto-clear typing after 3 seconds
+    if (isTyping) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(async () => {
+        if (channelRef.current) {
+          await channelRef.current.track({ isTyping: false, displayName: currentUserName });
+        }
+      }, 3000);
+    }
+  }, [currentUserName]);
+
   const sendMessage = async (message: string, userId: string): Promise<boolean> => {
     try {
+      // Clear typing indicator when sending
+      await setTyping(false);
+      
       const { error } = await supabase
         .from('team_chat_messages')
         .insert({
@@ -125,6 +194,8 @@ export function useTeamChat() {
     isLoading,
     sendMessage,
     deleteMessage,
-    refetch: fetchMessages
+    refetch: fetchMessages,
+    typingUsers,
+    setTyping
   };
 }
