@@ -8,6 +8,7 @@ import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
 import { Dashboard } from '@/components/Dashboard';
+import { ABComparison } from '@/components/ABComparison';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -22,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
@@ -120,6 +121,11 @@ const Index = () => {
           <>
             {viewMode === 'dashboard' ? (
               <Dashboard experiments={experiments} />
+            ) : viewMode === 'compare' ? (
+              <ABComparison 
+                experiments={experiments} 
+                onBack={() => setViewMode('table')} 
+              />
             ) : experiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
             ) : viewMode === 'table' ? (

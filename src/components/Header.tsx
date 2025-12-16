@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Layers, LayoutGrid, Table2, Brain, BarChart3 } from 'lucide-react';
+import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 
 interface HeaderProps {
   experimentCount: number;
-  viewMode: 'cards' | 'table' | 'dashboard';
-  onViewModeChange: (mode: 'cards' | 'table' | 'dashboard') => void;
+  viewMode: 'cards' | 'table' | 'dashboard' | 'compare';
+  onViewModeChange: (mode: 'cards' | 'table' | 'dashboard' | 'compare') => void;
   onOpenAnalyzer?: () => void;
 }
 
@@ -54,6 +54,15 @@ export function Header({ experimentCount, viewMode, onViewModeChange, onOpenAnal
               >
                 <Table2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Table</span>
+              </Button>
+              <Button
+                variant={viewMode === 'compare' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => onViewModeChange('compare')}
+                className="gap-1.5"
+              >
+                <GitCompareArrows className="w-4 h-4" />
+                <span className="hidden sm:inline">Compare</span>
               </Button>
             </div>
             
