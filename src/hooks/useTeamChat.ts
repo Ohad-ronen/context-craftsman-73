@@ -2,16 +2,24 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface ChatMessageProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+}
+
 export interface ChatMessage {
   id: string;
   user_id: string | null;
   message: string;
   created_at: string;
-  profile?: {
+  reply_to_id: string | null;
+  profile?: ChatMessageProfile | null;
+  reply_to?: {
     id: string;
-    display_name: string | null;
-    email: string | null;
-    avatar_url: string | null;
+    message: string;
+    profile?: ChatMessageProfile | null;
   } | null;
 }
 
@@ -40,13 +48,27 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
         .from('team_chat_messages')
         .select(`
           *,
-          profile:profiles(id, display_name, email, avatar_url)
+          profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url),
+          reply_to:team_chat_messages!team_chat_messages_reply_to_id_fkey(
+            id,
+            message,
+            profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
+          )
         `)
         .order('created_at', { ascending: true })
         .limit(100);
 
       if (error) throw error;
-      setMessages((data || []) as ChatMessage[]);
+      
+      // Transform reply_to from array to single object
+      const transformedData = (data || []).map(msg => ({
+        ...msg,
+        reply_to: Array.isArray(msg.reply_to) && msg.reply_to.length > 0 
+          ? msg.reply_to[0] 
+          : null
+      }));
+      
+      setMessages(transformedData as ChatMessage[]);
     } catch (error) {
       console.error('Error fetching chat messages:', error);
     } finally {
@@ -72,13 +94,25 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
             .from('team_chat_messages')
             .select(`
               *,
-              profile:profiles(id, display_name, email, avatar_url)
+              profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url),
+              reply_to:team_chat_messages!team_chat_messages_reply_to_id_fkey(
+                id,
+                message,
+                profile:profiles!team_chat_messages_user_id_fkey(id, display_name, email, avatar_url)
+              )
             `)
             .eq('id', payload.new.id)
             .single();
 
           if (!error && data) {
-            setMessages(prev => [...prev, data as ChatMessage]);
+            // Transform reply_to from array to single object
+            const transformedData = {
+              ...data,
+              reply_to: Array.isArray(data.reply_to) && data.reply_to.length > 0 
+                ? data.reply_to[0] 
+                : null
+            };
+            setMessages(prev => [...prev, transformedData as ChatMessage]);
           }
         }
       )
@@ -170,7 +204,7 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
     }
   }, [currentUserName, currentUserAvatar]);
 
-  const sendMessage = async (message: string, userId: string): Promise<boolean> => {
+  const sendMessage = async (message: string, userId: string, replyToId?: string): Promise<boolean> => {
     try {
       // Clear typing indicator when sending
       await setTyping(false);
@@ -179,7 +213,8 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string, cu
         .from('team_chat_messages')
         .insert({
           message,
-          user_id: userId
+          user_id: userId,
+          reply_to_id: replyToId || null
         });
 
       if (error) throw error;

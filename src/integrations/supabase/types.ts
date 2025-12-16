@@ -387,21 +387,31 @@ export type Database = {
           created_at: string
           id: string
           message: string
+          reply_to_id: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           message: string
+          reply_to_id?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           message?: string
+          reply_to_id?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "team_chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "team_chat_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_chat_messages_user_id_fkey"
             columns: ["user_id"]

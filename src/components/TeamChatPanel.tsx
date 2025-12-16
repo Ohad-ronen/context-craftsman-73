@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useTeamChat } from '@/hooks/useTeamChat';
+import { useTeamChat, ChatMessage } from '@/hooks/useTeamChat';
 import { useChatReactions, MessageReaction } from '@/hooks/useChatReactions';
 import { useAuth } from '@/hooks/useAuth';
 import { Experiment } from '@/hooks/useExperiments';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -67,6 +67,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
   const { reactions, toggleReaction } = useChatReactions();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleReaction = (messageId: string, emoji: string) => {
@@ -94,9 +95,10 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
     if (!newMessage.trim() || !user || isSending) return;
 
     setIsSending(true);
-    const success = await sendMessage(newMessage.trim(), user.id);
+    const success = await sendMessage(newMessage.trim(), user.id, replyingTo?.id);
     if (success) {
       setNewMessage('');
+      setReplyingTo(null);
     }
     setIsSending(false);
   };
@@ -237,6 +239,18 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                           </button>
                         )}
                       </div>
+                      {/* Reply context */}
+                      {msg.reply_to && (
+                        <div className={cn(
+                          "mb-1 px-2 py-1 rounded border-l-2 border-primary/50 bg-muted/50 text-xs text-muted-foreground max-w-[85%]",
+                          isOwnMessage ? "ml-auto" : "mr-auto"
+                        )}>
+                          <span className="font-medium">
+                            {msg.reply_to.profile?.display_name || msg.reply_to.profile?.email?.split('@')[0] || 'Unknown'}
+                          </span>
+                          <p className="truncate">{msg.reply_to.message}</p>
+                        </div>
+                      )}
                       <div
                         className={cn(
                           "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words text-left",
@@ -276,26 +290,36 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                         
                         {/* Add reaction button */}
                         {user && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-all">
-                                <SmilePlus className="h-3.5 w-3.5 text-muted-foreground" />
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2" side="top" align="start">
-                              <div className="flex gap-1">
-                                {EMOJI_OPTIONS.map((emoji) => (
-                                  <button
-                                    key={emoji}
-                                    onClick={() => handleReaction(msg.id, emoji)}
-                                    className="p-1.5 hover:bg-muted rounded transition-colors text-base"
-                                  >
-                                    {emoji}
-                                  </button>
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                          <>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-all">
+                                  <SmilePlus className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2" side="top" align="start">
+                                <div className="flex gap-1">
+                                  {EMOJI_OPTIONS.map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => handleReaction(msg.id, emoji)}
+                                      className="p-1.5 hover:bg-muted rounded transition-colors text-base"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            {/* Reply button */}
+                            <button 
+                              onClick={() => setReplyingTo(msg)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-all"
+                            >
+                              <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -326,23 +350,44 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
         {/* Input */}
         <div className="p-4 border-t border-border/50">
           {user ? (
-            <div className="flex gap-2">
-              <ChatInputWithMentions
-                value={newMessage}
-                onChange={handleInputChange}
-                onSubmit={handleSendMessage}
-                experiments={experiments}
-                placeholder="Type # to mention experiment..."
-                disabled={isSending}
-              />
-              <Button 
-                type="button" 
-                size="icon" 
-                disabled={!newMessage.trim() || isSending}
-                onClick={handleSendMessage}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="space-y-2">
+              {/* Reply indicator */}
+              {replyingTo && (
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-muted/50 rounded-lg text-xs">
+                  <Reply className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-muted-foreground">Replying to </span>
+                    <span className="font-medium">
+                      {replyingTo.profile?.display_name || replyingTo.profile?.email?.split('@')[0] || 'Unknown'}
+                    </span>
+                    <p className="truncate text-muted-foreground">{replyingTo.message}</p>
+                  </div>
+                  <button 
+                    onClick={() => setReplyingTo(null)}
+                    className="p-0.5 hover:bg-muted rounded"
+                  >
+                    <X className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <ChatInputWithMentions
+                  value={newMessage}
+                  onChange={handleInputChange}
+                  onSubmit={handleSendMessage}
+                  experiments={experiments}
+                  placeholder={replyingTo ? "Write a reply..." : "Type # to mention experiment..."}
+                  disabled={isSending}
+                />
+                <Button 
+                  type="button" 
+                  size="icon" 
+                  disabled={!newMessage.trim() || isSending}
+                  onClick={handleSendMessage}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center">
