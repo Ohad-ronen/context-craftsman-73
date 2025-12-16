@@ -6,6 +6,7 @@ import { Sparkles, Loader2, AlertCircle, CheckCircle2, Lightbulb } from 'lucide-
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fireConfetti, fireStarConfetti } from '@/lib/confetti';
 
 interface EvaluationCriteria {
   score: number;
@@ -77,16 +78,22 @@ export function AIEvaluation({ prompt, output, context, onEvaluationComplete }: 
       // Create notes from evaluation
       const notes = `AI Evaluation Summary:\n${data.evaluation.summary}\n\nSuggestions:\n${data.evaluation.suggestions.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}`;
       
+      // Fire confetti for 5-star rating!
+      if (data.evaluation.overallScore === 5) {
+        fireConfetti();
+        setTimeout(() => fireStarConfetti(), 500);
+      }
+      
       // Save evaluation results to backend
       if (onEvaluationComplete) {
         await onEvaluationComplete(data.evaluation.overallScore, notes);
         toast({
-          title: 'Evaluation complete & saved',
+          title: data.evaluation.overallScore === 5 ? '🎉 Perfect Score!' : 'Evaluation complete & saved',
           description: `Overall score: ${data.evaluation.overallScore}/5 - Results saved to database.`,
         });
       } else {
         toast({
-          title: 'Evaluation complete',
+          title: data.evaluation.overallScore === 5 ? '🎉 Perfect Score!' : 'Evaluation complete',
           description: `Overall score: ${data.evaluation.overallScore}/5`,
         });
       }
