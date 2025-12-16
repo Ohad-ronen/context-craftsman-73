@@ -7,6 +7,7 @@ import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
+import { Dashboard } from '@/components/Dashboard';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -21,14 +22,14 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table';
+type ViewMode = 'cards' | 'table' | 'dashboard';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
-  const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analyzerOpen, setAnalyzerOpen] = useState(false);
@@ -117,7 +118,9 @@ const Index = () => {
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
           <>
-            {experiments.length === 0 ? (
+            {viewMode === 'dashboard' ? (
+              <Dashboard experiments={experiments} />
+            ) : experiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
             ) : viewMode === 'table' ? (
               <ExperimentsTable 

@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Layers, LayoutGrid, Table2, Brain } from 'lucide-react';
+import { Layers, LayoutGrid, Table2, Brain, BarChart3 } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 
 interface HeaderProps {
   experimentCount: number;
-  viewMode: 'cards' | 'table';
-  onViewModeChange: (mode: 'cards' | 'table') => void;
+  viewMode: 'cards' | 'table' | 'dashboard';
+  onViewModeChange: (mode: 'cards' | 'table' | 'dashboard') => void;
   onOpenAnalyzer?: () => void;
 }
 
@@ -28,6 +28,15 @@ export function Header({ experimentCount, viewMode, onViewModeChange, onOpenAnal
           <div className="flex items-center gap-3">
             {/* View Toggle */}
             <div className="flex items-center rounded-lg border border-border p-1">
+              <Button
+                variant={viewMode === 'dashboard' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => onViewModeChange('dashboard')}
+                className="gap-1.5"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Button>
               <Button
                 variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
                 size="sm"
