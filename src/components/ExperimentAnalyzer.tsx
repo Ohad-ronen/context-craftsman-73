@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, Save, History, Trash2, ChevronLeft, GitCompareArrows, MessageSquare } from "lucide-react";
+import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, Save, History, Trash2, ChevronLeft, GitCompareArrows, MessageSquare, ListPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Experiment } from "@/hooks/useExperiments";
@@ -23,14 +23,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ExperimentAnalyzerProps {
   experiments: Experiment[];
+  onCreateTask?: (title: string, description: string) => void;
 }
 
 type ViewMode = 'analyzer' | 'history' | 'compare-select' | 'compare-view';
 
-export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
+export function ExperimentAnalyzer({ experiments, onCreateTask }: ExperimentAnalyzerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -504,9 +510,26 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                       <div className="grid gap-4 md:grid-cols-3">
                         {currentAnalysis.topRecommendations.map((rec, i) => (
                           <div key={i} className="p-4 rounded-lg border bg-card">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">{i + 1}</Badge>
-                              <h4 className="font-medium">{rec.title}</h4>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{i + 1}</Badge>
+                                <h4 className="font-medium">{rec.title}</h4>
+                              </div>
+                              {onCreateTask && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 shrink-0"
+                                      onClick={() => onCreateTask(rec.title, rec.description)}
+                                    >
+                                      <ListPlus className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Create task from this recommendation</TooltipContent>
+                                </Tooltip>
+                              )}
                             </div>
                             {selectedSavedAnalysis ? (
                               <AnnotatableAnalysisText
