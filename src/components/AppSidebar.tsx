@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
@@ -10,9 +9,6 @@ import {
   Bot, 
   Keyboard,
   Layers,
-  Tag,
-  Trash2,
-  Settings,
   Sun,
   Moon,
   User
@@ -32,19 +28,7 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
-import { Tag as TagType } from '@/hooks/useTags';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
@@ -56,11 +40,6 @@ interface AppSidebarProps {
   onOpenShortcuts?: () => void;
   onOpenBulkEval?: () => void;
   unratedCount?: number;
-  tags?: TagType[];
-  selectedTagIds?: string[];
-  onToggleTag?: (tagId: string) => void;
-  onClearTagFilter?: () => void;
-  onDeleteTag?: (tagId: string) => Promise<boolean>;
 }
 
 const viewItems = [
@@ -94,21 +73,7 @@ export function AppSidebar({
   onOpenShortcuts,
   onOpenBulkEval,
   unratedCount = 0,
-  tags = [],
-  selectedTagIds = [],
-  onToggleTag,
-  onClearTagFilter,
-  onDeleteTag,
 }: AppSidebarProps) {
-  const [manageMode, setManageMode] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<TagType | null>(null);
-
-  const handleDeleteTag = async () => {
-    if (tagToDelete && onDeleteTag) {
-      await onDeleteTag(tagToDelete.id);
-      setTagToDelete(null);
-    }
-  };
   return (
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-4">
@@ -183,75 +148,6 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
-
-        {/* Filters */}
-        {onToggleTag && onClearTagFilter && tags.length > 0 && (
-          <SidebarGroup data-tour="tag-filters">
-            <SidebarGroupLabel className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Tag className="w-3.5 h-3.5" />
-                Filter by Tags
-              </div>
-              {onDeleteTag && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 px-1.5 text-xs"
-                  onClick={() => setManageMode(!manageMode)}
-                >
-                  <Settings className="w-3 h-3 mr-1" />
-                  {manageMode ? 'Done' : 'Manage'}
-                </Button>
-              )}
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3 pb-2">
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <div key={tag.id} className="relative group">
-                    <button
-                      onClick={() => !manageMode && onToggleTag(tag.id)}
-                      disabled={manageMode}
-                      className={cn(
-                        "px-2 py-1 rounded-md text-xs font-medium transition-all",
-                        "border",
-                        manageMode 
-                          ? "cursor-default opacity-80"
-                          : "hover:scale-105",
-                        selectedTagIds.includes(tag.id) && !manageMode
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted/50 text-muted-foreground border-border"
-                      )}
-                      style={
-                        selectedTagIds.includes(tag.id) && !manageMode
-                          ? {}
-                          : { borderColor: tag.color + '40', backgroundColor: tag.color + '15' }
-                      }
-                    >
-                      {tag.name}
-                    </button>
-                    {manageMode && (
-                      <button
-                        onClick={() => setTagToDelete(tag)}
-                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:scale-110 transition-transform"
-                      >
-                        <Trash2 className="w-2.5 h-2.5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {selectedTagIds.length > 0 && !manageMode && (
-                <button
-                  onClick={onClearTagFilter}
-                  className="mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Clear filters
-                </button>
-              )}
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/50 space-y-1">
@@ -274,23 +170,6 @@ export function AppSidebar({
           </SidebarMenuButton>
         )}
       </SidebarFooter>
-
-      <AlertDialog open={!!tagToDelete} onOpenChange={(open) => !open && setTagToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Tag</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the tag "{tagToDelete?.name}"? This will remove it from all experiments.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTag} className="bg-destructive hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Sidebar>
   );
 }

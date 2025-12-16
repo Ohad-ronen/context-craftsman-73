@@ -9,10 +9,20 @@ import { ExperimentCard } from '@/components/ExperimentCard';
 import { CreateFolderDialog } from '@/components/CreateFolderDialog';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useDroppable } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
-import { FolderPlus, ArrowLeft, FolderOpen, FolderMinus } from 'lucide-react';
+import { FolderPlus, ArrowLeft, FolderOpen, FolderMinus, Search, Star, Filter, X, Tags, Layout } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TagBadge } from '@/components/TagBadge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +39,7 @@ interface FolderViewProps {
   getTagsForExperiment: (experimentId: string) => Tag[];
   onViewExperiment: (id: string) => void;
   onNewExperiment: () => void;
+  availableTags?: Tag[];
 }
 
 function UnfiledDropZone({ children, isActive }: { children: React.ReactNode; isActive: boolean }) {
@@ -74,7 +85,7 @@ function UnfiledDropZoneButton({ isActive }: { isActive: boolean }) {
   );
 }
 
-export function FolderView({ experiments, getTagsForExperiment, onViewExperiment, onNewExperiment }: FolderViewProps) {
+export function FolderView({ experiments, getTagsForExperiment, onViewExperiment, onNewExperiment, availableTags = [] }: FolderViewProps) {
   const { folders, createFolder, updateFolder, deleteFolder, moveExperimentToFolder } = useFolders();
   const { toast } = useToast();
   
@@ -83,28 +94,130 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
   const [deletingFolder, setDeletingFolder] = useState<Folder | null>(null);
   const [activeExperimentId, setActiveExperimentId] = useState<string | null>(null);
+  
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [ratingFilter, setRatingFilter] = useState<string>('all');
+  const [goalFilter, setGoalFilter] = useState<string>('all');
+  const [boardFilter, setBoardFilter] = useState<string>('all');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const currentFolder = folders.find(f => f.id === currentFolderId);
   
   // Type assertion for folder_id since it's a new column
   const experimentsWithFolder = experiments as (Experiment & { folder_id?: string | null })[];
   
+  // Get unique values for filters
+  const uniqueGoals = useMemo(() => {
+    const goals = new Set<string>();
+    experiments.forEach(exp => {
+      if (exp.goal && exp.goal.trim()) {
+        const truncated = exp.goal.length > 50 ? exp.goal.substring(0, 50) + '...' : exp.goal;
+        goals.add(truncated);
+      }
+    });
+    return Array.from(goals).sort();
+  }, [experiments]);
+
+  const uniqueBoards = useMemo(() => {
+    const boards = new Set<string>();
+    experiments.forEach(exp => {
+      if (exp.board_name && exp.board_name.trim()) {
+        boards.add(exp.board_name);
+      }
+    });
+    return Array.from(boards).sort();
+  }, [experiments]);
+
+  const goalMap = useMemo(() => {
+    const map = new Map<string, string>();
+    experiments.forEach(exp => {
+      if (exp.goal && exp.goal.trim()) {
+        const truncated = exp.goal.length > 50 ? exp.goal.substring(0, 50) + '...' : exp.goal;
+        map.set(truncated, exp.goal);
+      }
+    });
+    return map;
+  }, [experiments]);
+
+  // Filter experiments
+  const filteredExperiments = useMemo(() => {
+    let result = [...experimentsWithFolder];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(exp => 
+        exp.name.toLowerCase().includes(query) ||
+        exp.goal.toLowerCase().includes(query) ||
+        exp.mission.toLowerCase().includes(query) ||
+        exp.output.toLowerCase().includes(query) ||
+        exp.board_name.toLowerCase().includes(query)
+      );
+    }
+
+    if (ratingFilter !== 'all') {
+      if (ratingFilter === 'unrated') {
+        result = result.filter(exp => !exp.rating);
+      } else {
+        const rating = parseInt(ratingFilter);
+        result = result.filter(exp => exp.rating === rating);
+      }
+    }
+
+    if (goalFilter !== 'all') {
+      const fullGoal = goalMap.get(goalFilter) || goalFilter;
+      result = result.filter(exp => exp.goal === fullGoal);
+    }
+
+    if (boardFilter !== 'all') {
+      result = result.filter(exp => exp.board_name === boardFilter);
+    }
+
+    if (selectedTagIds.length > 0) {
+      result = result.filter(exp => {
+        const expTags = getTagsForExperiment(exp.id);
+        return selectedTagIds.some(tagId => expTags.some(t => t.id === tagId));
+      });
+    }
+
+    return result;
+  }, [experimentsWithFolder, searchQuery, ratingFilter, goalFilter, boardFilter, selectedTagIds, goalMap, getTagsForExperiment]);
+
   const unfiledExperiments = useMemo(() => 
-    experimentsWithFolder.filter(exp => !exp.folder_id),
-    [experimentsWithFolder]
+    filteredExperiments.filter(exp => !exp.folder_id),
+    [filteredExperiments]
   );
 
   const folderExperiments = useMemo(() => {
     if (!currentFolderId) return [];
-    return experimentsWithFolder.filter(exp => exp.folder_id === currentFolderId);
-  }, [experimentsWithFolder, currentFolderId]);
+    return filteredExperiments.filter(exp => exp.folder_id === currentFolderId);
+  }, [filteredExperiments, currentFolderId]);
 
   const getExperimentCountForFolder = (folderId: string) => 
-    experimentsWithFolder.filter(exp => exp.folder_id === folderId).length;
+    filteredExperiments.filter(exp => exp.folder_id === folderId).length;
 
   const activeExperiment = activeExperimentId 
     ? experiments.find(e => e.id === activeExperimentId) 
     : null;
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTagIds(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setRatingFilter('all');
+    setGoalFilter('all');
+    setBoardFilter('all');
+    setSelectedTagIds([]);
+  };
+
+  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || selectedTagIds.length > 0;
+  const selectedTags = availableTags.filter(t => selectedTagIds.includes(t.id));
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -260,7 +373,152 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
+        {/* Filters */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search experiments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={ratingFilter} onValueChange={setRatingFilter}>
+              <SelectTrigger className="w-[130px]">
+                <Star className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ratings</SelectItem>
+                <SelectItem value="unrated">Unrated</SelectItem>
+                <SelectItem value="5">5 Stars</SelectItem>
+                <SelectItem value="4">4 Stars</SelectItem>
+                <SelectItem value="3">3 Stars</SelectItem>
+                <SelectItem value="2">2 Stars</SelectItem>
+                <SelectItem value="1">1 Star</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {uniqueGoals.length > 0 && (
+              <Select value={goalFilter} onValueChange={setGoalFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Goals</SelectItem>
+                  {uniqueGoals.map(goal => (
+                    <SelectItem key={goal} value={goal}>
+                      {goal}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {uniqueBoards.length > 0 && (
+              <Select value={boardFilter} onValueChange={setBoardFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <Layout className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Board" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Boards</SelectItem>
+                  {uniqueBoards.map(board => (
+                    <SelectItem key={board} value={board}>
+                      {board.length > 20 ? board.substring(0, 20) + '...' : board}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {availableTags.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="default" className="gap-2">
+                    <Tags className="w-4 h-4" />
+                    Tags
+                    {selectedTagIds.length > 0 && (
+                      <span className="bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-xs">
+                        {selectedTagIds.length}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 bg-popover border-border" align="start">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Filter by Tags</p>
+                      {selectedTagIds.length > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSelectedTagIds([])}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableTags.map(tag => {
+                        const isSelected = selectedTagIds.includes(tag.id);
+                        return (
+                          <button
+                            key={tag.id}
+                            onClick={() => handleToggleTag(tag.id)}
+                            className={cn(
+                              "transition-all",
+                              isSelected ? "scale-105" : "opacity-60 hover:opacity-100"
+                            )}
+                          >
+                            <TagBadge 
+                              name={tag.name} 
+                              color={tag.color}
+                              className={isSelected ? "ring-2 ring-primary" : ""}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="gap-1 text-muted-foreground">
+                <X className="w-4 h-4" />
+                Clear filters
+              </Button>
+            )}
+
+            <span className="text-sm text-muted-foreground ml-auto">
+              {filteredExperiments.length} of {experiments.length} experiments
+            </span>
+          </div>
+
+          {/* Active Tag Filters */}
+          {selectedTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <span className="text-xs text-muted-foreground">Filtered by tags:</span>
+              {selectedTags.map(tag => (
+                <TagBadge
+                  key={tag.id}
+                  name={tag.name}
+                  color={tag.color}
+                  onRemove={() => handleToggleTag(tag.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Folders Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
