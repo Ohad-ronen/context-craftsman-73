@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { NotificationCenter } from '@/components/NotificationCenter';
 
 interface HeaderProps {
   title?: string;
@@ -43,7 +44,9 @@ export function Header({ title }: HeaderProps) {
           )}
         </div>
         
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
               <Avatar className="h-8 w-8">
@@ -72,6 +75,7 @@ export function Header({ title }: HeaderProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );
