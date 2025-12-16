@@ -60,6 +60,8 @@ interface AppSidebarProps {
   onOpenBulkEval?: () => void;
   unratedCount?: number;
   pendingTaskCount?: number;
+  workflowFormOpen?: boolean;
+  onWorkflowFormOpenChange?: (open: boolean) => void;
 }
 
 // Icon animation classes mapped by view id
@@ -106,6 +108,8 @@ export function AppSidebar({
   onOpenBulkEval,
   unratedCount = 0,
   pendingTaskCount = 0,
+  workflowFormOpen,
+  onWorkflowFormOpenChange,
 }: AppSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -124,7 +128,11 @@ export function AppSidebar({
       <SidebarContent>
         {/* Primary Action */}
         <SidebarGroup className={cn("p-3", isCollapsed && "p-2 flex justify-center")} data-tour="trigger-workflow">
-          <TriggerWorkflowForm collapsed={isCollapsed} />
+          <TriggerWorkflowForm 
+            collapsed={isCollapsed} 
+            open={workflowFormOpen} 
+            onOpenChange={onWorkflowFormOpenChange} 
+          />
         </SidebarGroup>
 
         {/* Views */}

@@ -57,6 +57,7 @@ const Index = () => {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [workflowFormOpen, setWorkflowFormOpen] = useState(false);
   const [prefilledTask, setPrefilledTask] = useState<{ title: string; description: string } | null>(null);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
@@ -145,9 +146,11 @@ const Index = () => {
     { key: 'Escape', handler: () => { 
       if (shortcutsOpen) setShortcutsOpen(false);
       else if (bulkEvalOpen) setBulkEvalOpen(false);
+      else if (workflowFormOpen) setWorkflowFormOpen(false);
       else if (chatOpen) setChatOpen(false);
       else if (view !== 'list') handleBack();
     }, description: 'Close dialog / Go back', category: 'General' },
+    { key: 'n', handler: () => setWorkflowFormOpen(true), description: 'New experiment', category: 'Actions' },
     { key: 'd', handler: () => { setViewMode('dashboard'); setView('list'); }, description: 'Dashboard view', category: 'Navigation' },
     { key: 't', handler: () => { setViewMode('table'); setView('list'); }, description: 'Table view', category: 'Navigation' },
     { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
@@ -158,7 +161,7 @@ const Index = () => {
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'm', handler: () => setChatOpen(prev => !prev), description: 'Toggle team chat', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
-  ], [view, shortcutsOpen, bulkEvalOpen, chatOpen]);
+  ], [view, shortcutsOpen, bulkEvalOpen, chatOpen, workflowFormOpen]);
 
   useKeyboardShortcuts(shortcuts, !deleteDialogOpen);
 
@@ -191,6 +194,8 @@ const Index = () => {
     unratedCount,
     onOpenShortcuts: () => setShortcutsOpen(true),
     pendingTaskCount,
+    workflowFormOpen,
+    onWorkflowFormOpenChange: setWorkflowFormOpen,
   };
 
   if (isLoading) {
