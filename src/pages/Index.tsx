@@ -10,6 +10,9 @@ import { EmptyState } from '@/components/EmptyState';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
 import { Dashboard } from '@/components/Dashboard';
 import { ABComparison } from '@/components/ABComparison';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -117,10 +120,38 @@ const Index = () => {
     }
   };
 
+  const renderLoadingState = () => {
+    if (viewMode === 'dashboard') {
+      return <DashboardSkeleton />;
+    }
+    if (viewMode === 'table') {
+      return <TableSkeleton rows={8} />;
+    }
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-background">
+        <Header 
+          experimentCount={0}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onOpenAnalyzer={() => {}}
+          tags={[]}
+          selectedTagIds={[]}
+          onToggleTag={() => {}}
+          onClearTagFilter={() => {}}
+        />
+        <main className="container mx-auto px-6 py-8">
+          {renderLoadingState()}
+        </main>
       </div>
     );
   }
