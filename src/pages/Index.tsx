@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
@@ -43,7 +43,6 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [analyzerOpen, setAnalyzerOpen] = useState(false);
   const [bulkEvalOpen, setBulkEvalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -149,7 +148,6 @@ const Index = () => {
     { key: '?', handler: () => setShortcutsOpen(true), description: 'Show keyboard shortcuts', category: 'General' },
     { key: 'Escape', handler: () => { 
       if (shortcutsOpen) setShortcutsOpen(false);
-      else if (analyzerOpen) setAnalyzerOpen(false);
       else if (bulkEvalOpen) setBulkEvalOpen(false);
       else if (view !== 'list') handleBack();
       else setSelectedTagIds([]);
@@ -158,10 +156,10 @@ const Index = () => {
     { key: 't', handler: () => { setViewMode('table'); setView('list'); }, description: 'Table view', category: 'Navigation' },
     { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
     { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
-    { key: 'a', handler: () => setAnalyzerOpen(true), description: 'Open AI analyzer', category: 'Actions' },
+    { key: 'a', handler: () => { setViewMode('insights'); setView('list'); }, description: 'AI Insights view', category: 'Navigation' },
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
-  ], [view, shortcutsOpen, analyzerOpen, bulkEvalOpen]);
+  ], [view, shortcutsOpen, bulkEvalOpen]);
 
   useKeyboardShortcuts(shortcuts, !deleteDialogOpen);
 
@@ -190,7 +188,6 @@ const Index = () => {
     experimentCount: filteredExperiments.length,
     viewMode,
     onViewModeChange: handleViewModeChange,
-    onOpenAnalyzer: () => setAnalyzerOpen(true),
     onOpenBulkEval: () => setBulkEvalOpen(true),
     unratedCount,
     onOpenShortcuts: () => setShortcutsOpen(true),
@@ -240,12 +237,6 @@ const Index = () => {
             </div>
           </header>
 
-          <ExperimentAnalyzer
-            experiments={filteredExperiments}
-            isOpen={analyzerOpen}
-            onClose={() => setAnalyzerOpen(false)}
-          />
-
           <BulkAIEvaluation
             isOpen={bulkEvalOpen}
             onClose={() => setBulkEvalOpen(false)}
@@ -256,7 +247,9 @@ const Index = () => {
           <main className="flex-1 p-6 overflow-auto">
             {view === 'list' && (
               <>
-                {viewMode === 'dashboard' ? (
+                {viewMode === 'insights' ? (
+                  <ExperimentAnalyzer experiments={filteredExperiments} />
+                ) : viewMode === 'dashboard' ? (
                   <Dashboard experiments={filteredExperiments} />
                 ) : viewMode === 'compare' ? (
                   <ABComparison

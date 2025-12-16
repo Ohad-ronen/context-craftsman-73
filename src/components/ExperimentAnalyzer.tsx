@@ -25,13 +25,11 @@ import {
 
 interface ExperimentAnalyzerProps {
   experiments: Experiment[];
-  isOpen: boolean;
-  onClose: () => void;
 }
 
 type ViewMode = 'analyzer' | 'history' | 'compare-select' | 'compare-view';
 
-export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentAnalyzerProps) {
+export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -141,8 +139,6 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
 
   const currentAnalysis = analysis;
 
-  if (!isOpen) return null;
-
   const getHeaderTitle = () => {
     switch (viewMode) {
       case 'history': return 'Analysis History';
@@ -162,83 +158,79 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="fixed inset-4 md:inset-10 overflow-auto bg-background border rounded-lg shadow-lg">
-        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {viewMode !== 'analyzer' && (
-              <Button variant="ghost" size="icon" onClick={() => {
-                if (viewMode === 'compare-view') {
-                  setViewMode('compare-select');
-                } else {
-                  setViewMode('analyzer');
-                  setCompareSelection([]);
-                }
-              }}>
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-            )}
-            <Brain className="h-6 w-6 text-primary" />
-            <div>
-              <h2 className="text-xl font-semibold">{getHeaderTitle()}</h2>
-              <p className="text-sm text-muted-foreground">{getHeaderSubtitle()}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {viewMode === 'analyzer' && (
-              <>
-                {analyses.length >= 2 && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setCompareSelection([]);
-                      setViewMode('compare-select');
-                    }}
-                    className="gap-2"
-                  >
-                    <GitCompareArrows className="h-4 w-4" />
-                    Compare
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={() => setViewMode('history')}
-                  className="gap-2"
-                >
-                  <History className="h-4 w-4" />
-                  History ({analyses.length})
-                </Button>
-                <Button onClick={runAnalysis} disabled={isLoading || experiments.length < 2}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="mr-2 h-4 w-4" />
-                      {analysis ? "Re-analyze" : "Analyze"}
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-            {viewMode === 'compare-select' && (
-              <Button 
-                onClick={handleStartComparison} 
-                disabled={compareSelection.length !== 2}
-              >
-                <GitCompareArrows className="mr-2 h-4 w-4" />
-                Compare Selected
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {viewMode !== 'analyzer' && (
+            <Button variant="ghost" size="icon" onClick={() => {
+              if (viewMode === 'compare-view') {
+                setViewMode('compare-select');
+              } else {
+                setViewMode('analyzer');
+                setCompareSelection([]);
+              }
+            }}>
+              <ChevronLeft className="h-5 w-5" />
             </Button>
+          )}
+          <Brain className="h-6 w-6 text-primary" />
+          <div>
+            <h2 className="text-xl font-semibold">{getHeaderTitle()}</h2>
+            <p className="text-sm text-muted-foreground">{getHeaderSubtitle()}</p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          {viewMode === 'analyzer' && (
+            <>
+              {analyses.length >= 2 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setCompareSelection([]);
+                    setViewMode('compare-select');
+                  }}
+                  className="gap-2"
+                >
+                  <GitCompareArrows className="h-4 w-4" />
+                  Compare
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                onClick={() => setViewMode('history')}
+                className="gap-2"
+              >
+                <History className="h-4 w-4" />
+                History ({analyses.length})
+              </Button>
+              <Button onClick={runAnalysis} disabled={isLoading || experiments.length < 2}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Brain className="mr-2 h-4 w-4" />
+                    {analysis ? "Re-analyze" : "Analyze"}
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+          {viewMode === 'compare-select' && (
+            <Button 
+              onClick={handleStartComparison} 
+              disabled={compareSelection.length !== 2}
+            >
+              <GitCompareArrows className="mr-2 h-4 w-4" />
+              Compare Selected
+            </Button>
+          )}
+        </div>
+      </div>
 
-        <div className="p-6">
+        <div>
           {/* History View */}
           {viewMode === 'history' && (
             <div className="space-y-4">
@@ -608,7 +600,6 @@ export function ExperimentAnalyzer({ experiments, isOpen, onClose }: ExperimentA
             </>
           )}
         </div>
-      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
