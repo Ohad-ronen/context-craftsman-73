@@ -3,9 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, Plus } from "lucide-react";
 
 const N8N_WEBHOOK_URL = "https://boardsai.app.n8n.cloud/webhook/575b5dc9-dbd9-4113-81fd-8fea8342f97d";
 
@@ -17,6 +24,7 @@ interface WorkflowFormData {
 }
 
 export function TriggerWorkflowForm() {
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<WorkflowFormData>({
     goal: "",
@@ -50,6 +58,7 @@ export function TriggerWorkflowForm() {
       if (response.ok) {
         toast.success("Workflow triggered successfully! Agents are now running.");
         setFormData({ goal: "", mission: "", example: "", rules: "" });
+        setIsOpen(false);
       } else {
         toast.error("Failed to trigger workflow");
       }
@@ -62,17 +71,22 @@ export function TriggerWorkflowForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Play className="h-5 w-5" />
-          Trigger Experiment Workflow
-        </CardTitle>
-        <CardDescription>
-          Start an n8n workflow to run agents. Results will be added as new experiments when complete.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="outline" title="Trigger Workflow">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Play className="h-5 w-5" />
+            Trigger Experiment Workflow
+          </DialogTitle>
+          <DialogDescription>
+            Start an n8n workflow to run agents. Results will be added as new experiments when complete.
+          </DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="goal">Goal of the Experiment *</Label>
@@ -133,7 +147,7 @@ export function TriggerWorkflowForm() {
             )}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
