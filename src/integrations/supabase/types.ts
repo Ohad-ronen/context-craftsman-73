@@ -68,6 +68,44 @@ export type Database = {
           },
         ]
       }
+      experiment_analyses: {
+        Row: {
+          analysis: Json
+          created_at: string
+          experiment_count: number
+          experiment_ids: string[]
+          id: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis: Json
+          created_at?: string
+          experiment_count: number
+          experiment_ids: string[]
+          id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis?: Json
+          created_at?: string
+          experiment_count?: number
+          experiment_ids?: string[]
+          id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_analyses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiment_tags: {
         Row: {
           created_at: string
