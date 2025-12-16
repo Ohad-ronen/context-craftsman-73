@@ -7,6 +7,7 @@ export interface Profile {
   email: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  has_completed_tour: boolean | null;
 }
 
 export function useAuth() {
