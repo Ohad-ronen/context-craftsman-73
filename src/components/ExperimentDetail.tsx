@@ -1,11 +1,13 @@
 import { Experiment } from '@/hooks/useExperiments';
 import { Tag } from '@/hooks/useTags';
+import { useAnnotations } from '@/hooks/useAnnotations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
 import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
 import { JsonViewer } from './JsonViewer';
+import { AnnotatableText, AnnotationsSummary } from './annotations';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -49,9 +51,27 @@ export function ExperimentDetail({
   onRemoveTag,
   onCreateTag
 }: ExperimentDetailProps) {
+  const {
+    annotations,
+    createAnnotation,
+    updateAnnotation,
+    deleteAnnotation,
+    getAnnotationsForField,
+  } = useAnnotations(experiment.id);
+
   const handleEvaluationComplete = async (score: number, notes: string) => {
     if (onUpdate) {
       await onUpdate(experiment.id, { rating: score, notes });
+    }
+  };
+
+  // Check if content is JSON
+  const isJson = (str: string) => {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -114,6 +134,14 @@ export function ExperimentDetail({
         </Card>
       )}
 
+      {/* Annotations Summary */}
+      {annotations.length > 0 && (
+        <AnnotationsSummary
+          annotations={annotations}
+          onDelete={deleteAnnotation}
+        />
+      )}
+
       {/* Flow Sections */}
       <div className="space-y-4">
         {sections.map((section, index) => {
@@ -121,6 +149,9 @@ export function ExperimentDetail({
           const content = experiment[section.key as keyof Experiment] as string;
           
           if (!content) return null; // Skip empty sections
+
+          const fieldAnnotations = getAnnotationsForField(section.key);
+          const contentIsJson = isJson(content);
           
           return (
             <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
@@ -131,10 +162,27 @@ export function ExperimentDetail({
                       <Icon className={cn("w-4 h-4", section.color)} />
                     </div>
                     <span>{section.label}</span>
+                    {fieldAnnotations.length > 0 && (
+                      <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                        {fieldAnnotations.length} note{fieldAnnotations.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <JsonViewer content={content} />
+                  {contentIsJson ? (
+                    <JsonViewer content={content} />
+                  ) : (
+                    <AnnotatableText
+                      content={content}
+                      fieldName={section.key}
+                      experimentId={experiment.id}
+                      annotations={fieldAnnotations}
+                      onCreateAnnotation={createAnnotation}
+                      onUpdateAnnotation={updateAnnotation}
+                      onDeleteAnnotation={deleteAnnotation}
+                    />
+                  )}
                 </CardContent>
               </Card>
               {index < sections.length - 1 && content && (
