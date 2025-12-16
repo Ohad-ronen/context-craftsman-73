@@ -11,6 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { Play, Loader2, Plus } from "lucide-react";
 
@@ -23,7 +28,11 @@ interface WorkflowFormData {
   rules: string;
 }
 
-export function TriggerWorkflowForm() {
+interface TriggerWorkflowFormProps {
+  collapsed?: boolean;
+}
+
+export function TriggerWorkflowForm({ collapsed = false }: TriggerWorkflowFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<WorkflowFormData>({
@@ -70,13 +79,31 @@ export function TriggerWorkflowForm() {
     }
   };
 
+  const triggerButton = (
+    <Button 
+      className={collapsed ? "w-8 h-8 p-0" : "gap-2 w-full"}
+      size={collapsed ? "icon" : "default"}
+    >
+      <Plus className="w-4 h-4" />
+      {!collapsed && "New Experiment"}
+    </Button>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          New Experiment
-        </Button>
+        {collapsed ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {triggerButton}
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              New Experiment
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          triggerButton
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
