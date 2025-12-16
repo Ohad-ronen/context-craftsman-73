@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { CSVImport } from '@/components/CSVImport';
 import { GoogleSheetsImport } from '@/components/GoogleSheetsImport';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
+import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -133,7 +134,11 @@ const Index = () => {
       
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
-          <>
+          <div className="space-y-8">
+            <div className="flex justify-center">
+              <TriggerWorkflowForm />
+            </div>
+            
             {experiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
             ) : viewMode === 'table' ? (
@@ -153,7 +158,7 @@ const Index = () => {
                 ))}
               </div>
             )}
-          </>
+          </div>
         )}
 
         {(view === 'create' || view === 'edit') && (
