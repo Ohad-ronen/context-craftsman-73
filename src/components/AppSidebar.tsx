@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   BarChart3, 
   LayoutGrid, 
@@ -12,7 +13,8 @@ import {
   Sun,
   Moon,
   User,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -179,6 +181,17 @@ export function AppSidebar({
                 <DropdownMenuShortcut>?</DropdownMenuShortcut>
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = '/auth';
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
