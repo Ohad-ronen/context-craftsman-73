@@ -46,13 +46,12 @@ import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { Tag as TagType } from '@/hooks/useTags';
 import { cn } from '@/lib/utils';
 
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights';
 
 interface AppSidebarProps {
   experimentCount: number;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onOpenAnalyzer?: () => void;
   onOpenShortcuts?: () => void;
   onOpenBulkEval?: () => void;
   unratedCount?: number;
@@ -68,6 +67,7 @@ const viewItems = [
   { id: 'cards' as ViewMode, title: 'Cards', icon: LayoutGrid },
   { id: 'table' as ViewMode, title: 'Table', icon: Table2 },
   { id: 'compare' as ViewMode, title: 'Compare', icon: GitCompareArrows },
+  { id: 'insights' as ViewMode, title: 'AI Insights', icon: Brain },
 ];
 
 function ThemeToggleButton() {
@@ -89,7 +89,6 @@ export function AppSidebar({
   experimentCount,
   viewMode,
   onViewModeChange,
-  onOpenAnalyzer,
   onOpenShortcuts,
   onOpenBulkEval,
   unratedCount = 0,
@@ -175,14 +174,6 @@ export function AppSidebar({
                         {unratedCount}
                       </Badge>
                     )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {onOpenAnalyzer && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={onOpenAnalyzer}>
-                    <Brain className="w-4 h-4" />
-                    <span>AI Insights</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
