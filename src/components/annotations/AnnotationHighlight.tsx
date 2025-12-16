@@ -83,14 +83,21 @@ export function AnnotationHighlight({
                   autoFocus
                 />
               ) : (
-                <p className="text-sm leading-relaxed">{annotation.note}</p>
+              <p className="text-sm leading-relaxed">{annotation.note}</p>
               )}
             </div>
             
             <div className="flex items-center justify-between pt-1 border-t border-border/50">
-              <span className="text-xs text-muted-foreground">
-                {new Date(annotation.created_at).toLocaleDateString()}
-              </span>
+              <div className="flex flex-col gap-0.5">
+                {annotation.profile && (
+                  <span className="text-xs font-medium text-foreground/80">
+                    {annotation.profile.display_name || annotation.profile.email || 'Unknown'}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {new Date(annotation.created_at).toLocaleDateString()}
+                </span>
+              </div>
               <div className="flex gap-1">
                 {isEditing ? (
                   <>

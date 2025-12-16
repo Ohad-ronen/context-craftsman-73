@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface AnnotationProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+}
+
 export interface Annotation {
   id: string;
   experiment_id: string;
@@ -10,8 +17,10 @@ export interface Annotation {
   end_offset: number;
   highlighted_text: string;
   note: string;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
+  profile?: AnnotationProfile | null;
 }
 
 export interface CreateAnnotationData {
@@ -21,6 +30,7 @@ export interface CreateAnnotationData {
   end_offset: number;
   highlighted_text: string;
   note: string;
+  user_id: string;
 }
 
 export function useAnnotations(experimentId: string | undefined) {
@@ -34,13 +44,16 @@ export function useAnnotations(experimentId: string | undefined) {
     try {
       const { data, error } = await supabase
         .from('annotations')
-        .select('*')
+        .select(`
+          *,
+          profile:profiles(id, display_name, email, avatar_url)
+        `)
         .eq('experiment_id', experimentId)
         .order('field_name', { ascending: true })
         .order('start_offset', { ascending: true });
 
       if (error) throw error;
-      setAnnotations(data || []);
+      setAnnotations((data || []) as Annotation[]);
     } catch (error) {
       console.error('Error fetching annotations:', error);
     } finally {
@@ -79,12 +92,15 @@ export function useAnnotations(experimentId: string | undefined) {
       const { data: newAnnotation, error } = await supabase
         .from('annotations')
         .insert(data)
-        .select()
+        .select(`
+          *,
+          profile:profiles(id, display_name, email, avatar_url)
+        `)
         .single();
 
       if (error) throw error;
       toast.success('Annotation added');
-      return newAnnotation;
+      return newAnnotation as Annotation;
     } catch (error) {
       console.error('Error creating annotation:', error);
       toast.error('Failed to add annotation');
