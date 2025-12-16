@@ -14,7 +14,8 @@ import {
   Moon,
   User,
   Settings,
-  LogOut
+  LogOut,
+  ListTodo
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -42,7 +43,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks';
 
 interface AppSidebarProps {
   experimentCount: number;
@@ -51,6 +52,7 @@ interface AppSidebarProps {
   onOpenShortcuts?: () => void;
   onOpenBulkEval?: () => void;
   unratedCount?: number;
+  pendingTaskCount?: number;
 }
 
 const viewItems = [
@@ -81,6 +83,7 @@ export function AppSidebar({
   onOpenShortcuts,
   onOpenBulkEval,
   unratedCount = 0,
+  pendingTaskCount = 0,
 }: AppSidebarProps) {
   return (
     <Sidebar className="border-r border-border/50">
@@ -128,7 +131,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* AI Tools */}
+        {/* Tools */}
         <SidebarGroup data-tour="ai-tools">
           <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -146,6 +149,21 @@ export function AppSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => onViewModeChange('tasks')}
+                  isActive={viewMode === 'tasks'}
+                  className={viewMode === 'tasks' ? 'bg-primary/10 text-primary' : ''}
+                >
+                  <ListTodo className="w-4 h-4" />
+                  <span>Task Manager</span>
+                  {pendingTaskCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
+                      {pendingTaskCount}
+                    </Badge>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

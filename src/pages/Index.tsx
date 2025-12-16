@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useExperiments, ExperimentFormData } from '@/hooks/useExperiments';
 import { useTags } from '@/hooks/useTags';
+import { useTasks } from '@/hooks/useTasks';
 import { useKeyboardShortcuts, Shortcut } from '@/hooks/useKeyboardShortcuts';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -23,6 +24,7 @@ import { OnboardingTour } from '@/components/OnboardingTour';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { OutputBattle } from '@/components/OutputBattle';
 import { FolderView } from '@/components/FolderView';
+import { TaskManager } from '@/components/TaskManager';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -37,11 +39,12 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
   const { tags, getTagsForExperiment, createTag, deleteTag, addTagToExperiment, removeTagFromExperiment } = useTags();
+  const { pendingTaskCount } = useTasks();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
@@ -130,6 +133,7 @@ const Index = () => {
     { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
     { key: 'a', handler: () => { setViewMode('insights'); setView('list'); }, description: 'AI Insights view', category: 'Navigation' },
     { key: 'o', handler: () => { setViewMode('battle'); setView('list'); }, description: 'Output Battle', category: 'Navigation' },
+    { key: 'x', handler: () => { setViewMode('tasks'); setView('list'); }, description: 'Task Manager', category: 'Navigation' },
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'm', handler: () => setChatOpen(prev => !prev), description: 'Toggle team chat', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
@@ -165,6 +169,7 @@ const Index = () => {
     onOpenBulkEval: () => setBulkEvalOpen(true),
     unratedCount,
     onOpenShortcuts: () => setShortcutsOpen(true),
+    pendingTaskCount,
   };
 
   if (isLoading) {
@@ -225,7 +230,9 @@ const Index = () => {
           <main className="flex-1 p-6 overflow-auto">
             {view === 'list' && (
               <>
-                {viewMode === 'battle' ? (
+                {viewMode === 'tasks' ? (
+                  <TaskManager onViewExperiment={handleViewExperiment} />
+                ) : viewMode === 'battle' ? (
                   <OutputBattle 
                     experiments={experiments}
                     onViewExperiment={handleViewExperiment}
