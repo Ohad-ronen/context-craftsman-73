@@ -134,8 +134,8 @@ const Index = () => {
       
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
-          <div className="space-y-8">
-            <div className="flex justify-center">
+          <>
+            <div className="flex justify-end mb-4">
               <TriggerWorkflowForm />
             </div>
             
@@ -158,7 +158,7 @@ const Index = () => {
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
 
         {(view === 'create' || view === 'edit') && (
