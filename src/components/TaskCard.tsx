@@ -1,5 +1,7 @@
 import { format, isPast, isToday } from 'date-fns';
-import { Calendar, Beaker, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, Beaker, MoreHorizontal, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,7 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onViewExperiment?: (id: string) => void;
+  isDragging?: boolean;
 }
 
 const priorityColors: Record<TaskPriority, string> = {
@@ -40,17 +43,47 @@ export function TaskCard({
   onDelete,
   onViewExperiment,
 }: TaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const dueDate = task.due_date ? new Date(task.due_date) : null;
   const isOverdue = dueDate && isPast(dueDate) && !isToday(dueDate) && task.status !== 'done';
   const isDueToday = dueDate && isToday(dueDate);
 
   return (
-    <Card className="group hover:shadow-md transition-shadow cursor-pointer">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'group hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing',
+        isDragging && 'opacity-50 shadow-lg ring-2 ring-primary'
+      )}
+    >
       <CardContent className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="font-medium text-sm leading-tight line-clamp-2">
-            {task.title}
-          </h4>
+          <div className="flex items-start gap-2 flex-1 min-w-0">
+            <div
+              {...attributes}
+              {...listeners}
+              className="mt-0.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+            <h4 className="font-medium text-sm leading-tight line-clamp-2 flex-1">
+              {task.title}
+            </h4>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -78,12 +111,12 @@ export function TaskCard({
         </div>
 
         {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
+          <p className="text-xs text-muted-foreground line-clamp-2 pl-6">
             {task.description}
           </p>
         )}
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap pl-6">
           <Badge variant="secondary" className={cn('text-xs', priorityColors[task.priority])}>
             {priorityLabels[task.priority]}
           </Badge>
@@ -109,7 +142,7 @@ export function TaskCard({
               e.stopPropagation();
               onViewExperiment?.(experiment.id);
             }}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors pl-6"
           >
             <Beaker className="h-3 w-3" />
             <span className="truncate max-w-[150px]">{experiment.name}</span>
