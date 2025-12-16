@@ -25,6 +25,8 @@ import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { OutputBattle } from '@/components/OutputBattle';
 import { FolderView } from '@/components/FolderView';
 import { TaskManager } from '@/components/TaskManager';
+import { TaskDialog } from '@/components/TaskDialog';
+import { TaskFormData } from '@/hooks/useTasks';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -44,7 +46,7 @@ type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'batt
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
   const { tags, getTagsForExperiment, createTag, deleteTag, addTagToExperiment, removeTagFromExperiment } = useTags();
-  const { pendingTaskCount } = useTasks();
+  const { pendingTaskCount, addTask } = useTasks();
   const { toast } = useToast();
   
   const [view, setView] = useState<View>('list');
@@ -54,6 +56,8 @@ const Index = () => {
   const [bulkEvalOpen, setBulkEvalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [prefilledTask, setPrefilledTask] = useState<{ title: string; description: string } | null>(null);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
 
@@ -115,6 +119,23 @@ const Index = () => {
         setDeleteDialogOpen(false);
         handleBack();
       }
+    }
+  };
+
+  const handleCreateTaskFromRecommendation = (title: string, description: string) => {
+    setPrefilledTask({ title, description });
+    setTaskDialogOpen(true);
+  };
+
+  const handleTaskDialogSubmit = async (data: TaskFormData) => {
+    const created = await addTask(data);
+    if (created) {
+      toast({
+        title: 'Task created',
+        description: 'Task has been added to your task manager.',
+      });
+      setTaskDialogOpen(false);
+      setPrefilledTask(null);
     }
   };
 
@@ -238,7 +259,10 @@ const Index = () => {
                     onViewExperiment={handleViewExperiment}
                   />
                 ) : viewMode === 'insights' ? (
-                  <ExperimentAnalyzer experiments={experiments} />
+                  <ExperimentAnalyzer 
+                    experiments={experiments} 
+                    onCreateTask={handleCreateTaskFromRecommendation}
+                  />
                 ) : viewMode === 'dashboard' ? (
                   <Dashboard experiments={experiments} />
                 ) : viewMode === 'compare' ? (
@@ -353,6 +377,31 @@ const Index = () => {
         </div>
 
         <OnboardingTour />
+
+        {/* Task Dialog for AI Insights recommendations */}
+        <TaskDialog
+          open={taskDialogOpen}
+          onOpenChange={(open) => {
+            setTaskDialogOpen(open);
+            if (!open) setPrefilledTask(null);
+          }}
+          onSubmit={handleTaskDialogSubmit}
+          task={prefilledTask ? {
+            id: '',
+            title: prefilledTask.title,
+            description: prefilledTask.description,
+            status: 'todo',
+            priority: 'medium',
+            experiment_id: null,
+            analysis_id: null,
+            due_date: null,
+            completed_at: null,
+            user_id: null,
+            created_at: '',
+            updated_at: '',
+          } : null}
+          experiments={experiments}
+        />
       </div>
     </SidebarProvider>
   );
