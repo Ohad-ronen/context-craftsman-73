@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_annotations: {
+        Row: {
+          analysis_id: string
+          created_at: string
+          end_offset: number
+          field_name: string
+          highlighted_text: string
+          id: string
+          note: string
+          start_offset: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string
+          end_offset: number
+          field_name: string
+          highlighted_text: string
+          id?: string
+          note: string
+          start_offset: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string
+          end_offset?: number
+          field_name?: string
+          highlighted_text?: string
+          id?: string
+          note?: string
+          start_offset?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_annotations_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analysis_annotations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       annotations: {
         Row: {
           created_at: string
