@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      annotations: {
+        Row: {
+          created_at: string
+          end_offset: number
+          experiment_id: string
+          field_name: string
+          highlighted_text: string
+          id: string
+          note: string
+          start_offset: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_offset: number
+          experiment_id: string
+          field_name: string
+          highlighted_text: string
+          id?: string
+          note: string
+          start_offset: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_offset?: number
+          experiment_id?: string
+          field_name?: string
+          highlighted_text?: string
+          id?: string
+          note?: string
+          start_offset?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annotations_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiment_tags: {
         Row: {
           created_at: string
