@@ -20,10 +20,17 @@ export interface TypingUser {
   displayName: string;
 }
 
-export function useTeamChat(currentUserId?: string, currentUserName?: string) {
+export interface OnlineUser {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string;
+}
+
+export function useTeamChat(currentUserId?: string, currentUserName?: string, currentUserAvatar?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -105,11 +112,21 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string) {
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
         const typing: TypingUser[] = [];
+        const online: OnlineUser[] = [];
         
         Object.entries(state).forEach(([key, presences]) => {
-          if (key !== currentUserId && presences.length > 0) {
-            const presence = presences[0] as { isTyping?: boolean; displayName?: string };
-            if (presence.isTyping) {
+          if (presences.length > 0) {
+            const presence = presences[0] as { isTyping?: boolean; displayName?: string; avatarUrl?: string };
+            
+            // Track all online users
+            online.push({
+              userId: key,
+              displayName: presence.displayName || 'Someone',
+              avatarUrl: presence.avatarUrl
+            });
+            
+            // Track typing users (excluding self)
+            if (key !== currentUserId && presence.isTyping) {
               typing.push({
                 userId: key,
                 displayName: presence.displayName || 'Someone'
@@ -119,10 +136,11 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string) {
         });
         
         setTypingUsers(typing);
+        setOnlineUsers(online);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await presenceChannel.track({ isTyping: false, displayName: currentUserName });
+          await presenceChannel.track({ isTyping: false, displayName: currentUserName, avatarUrl: currentUserAvatar });
         }
       });
 
@@ -132,12 +150,12 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string) {
       supabase.removeChannel(presenceChannel);
       channelRef.current = null;
     };
-  }, [currentUserId, currentUserName]);
+  }, [currentUserId, currentUserName, currentUserAvatar]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
     if (!channelRef.current) return;
     
-    await channelRef.current.track({ isTyping, displayName: currentUserName });
+    await channelRef.current.track({ isTyping, displayName: currentUserName, avatarUrl: currentUserAvatar });
     
     // Auto-clear typing after 3 seconds
     if (isTyping) {
@@ -146,11 +164,11 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string) {
       }
       typingTimeoutRef.current = setTimeout(async () => {
         if (channelRef.current) {
-          await channelRef.current.track({ isTyping: false, displayName: currentUserName });
+          await channelRef.current.track({ isTyping: false, displayName: currentUserName, avatarUrl: currentUserAvatar });
         }
       }, 3000);
     }
-  }, [currentUserName]);
+  }, [currentUserName, currentUserAvatar]);
 
   const sendMessage = async (message: string, userId: string): Promise<boolean> => {
     try {
@@ -196,6 +214,7 @@ export function useTeamChat(currentUserId?: string, currentUserName?: string) {
     deleteMessage,
     refetch: fetchMessages,
     typingUsers,
-    setTyping
+    setTyping,
+    onlineUsers
   };
 }
