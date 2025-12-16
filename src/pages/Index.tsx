@@ -20,6 +20,7 @@ import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { TeamChatPanel } from '@/components/TeamChatPanel';
 import { OnboardingTour } from '@/components/OnboardingTour';
+import { ExportReportDialog } from '@/components/ExportReportDialog';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -238,8 +239,15 @@ const Index = () => {
                   {view === 'list' ? viewMode : view} View
                 </span>
               </div>
-              <div data-tour="notifications">
-                <NotificationCenter />
+              <div className="flex items-center gap-2">
+                <ExportReportDialog 
+                  experiments={experiments}
+                  tags={tags}
+                  getTagsForExperiment={getTagsForExperiment}
+                />
+                <div data-tour="notifications">
+                  <NotificationCenter />
+                </div>
               </div>
             </div>
           </header>
