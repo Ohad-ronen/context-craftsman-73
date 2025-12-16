@@ -162,12 +162,17 @@ export function AnnotatableText({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [selection, isPopoverOpen]);
 
+  // Detect if content looks like JSON
+  const looksLikeJson = content.trim().startsWith('{') || content.trim().startsWith('[');
+
   return (
     <div className="relative">
       <div
         ref={containerRef}
         onMouseUp={handleMouseUp}
-        className="text-sm text-muted-foreground whitespace-pre-wrap font-sans select-text cursor-text"
+        className={`text-sm text-muted-foreground whitespace-pre-wrap select-text cursor-text ${
+          looksLikeJson ? 'font-mono bg-secondary/30 rounded-lg p-4' : 'font-sans'
+        }`}
       >
         {renderContent()}
       </div>

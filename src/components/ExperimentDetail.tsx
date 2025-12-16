@@ -65,13 +65,13 @@ export function ExperimentDetail({
     }
   };
 
-  // Check if content is JSON
-  const isJson = (str: string) => {
+  // Format content - pretty print JSON if valid, otherwise return as-is
+  const formatContent = (str: string): string => {
     try {
-      JSON.parse(str);
-      return true;
+      const parsed = JSON.parse(str);
+      return JSON.stringify(parsed, null, 2);
     } catch {
-      return false;
+      return str;
     }
   };
 
@@ -151,7 +151,7 @@ export function ExperimentDetail({
           if (!content) return null; // Skip empty sections
 
           const fieldAnnotations = getAnnotationsForField(section.key);
-          const contentIsJson = isJson(content);
+          const formattedContent = formatContent(content);
           
           return (
             <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
@@ -170,19 +170,15 @@ export function ExperimentDetail({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {contentIsJson ? (
-                    <JsonViewer content={content} />
-                  ) : (
-                    <AnnotatableText
-                      content={content}
-                      fieldName={section.key}
-                      experimentId={experiment.id}
-                      annotations={fieldAnnotations}
-                      onCreateAnnotation={createAnnotation}
-                      onUpdateAnnotation={updateAnnotation}
-                      onDeleteAnnotation={deleteAnnotation}
-                    />
-                  )}
+                  <AnnotatableText
+                    content={formattedContent}
+                    fieldName={section.key}
+                    experimentId={experiment.id}
+                    annotations={fieldAnnotations}
+                    onCreateAnnotation={createAnnotation}
+                    onUpdateAnnotation={updateAnnotation}
+                    onDeleteAnnotation={deleteAnnotation}
+                  />
                 </CardContent>
               </Card>
               {index < sections.length - 1 && content && (
