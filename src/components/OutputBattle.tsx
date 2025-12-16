@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Trophy, Swords, RotateCcw, ArrowLeft, ExternalLink, Sparkles } from 'lucide-react';
+import { Trophy, Swords, RotateCcw, ArrowLeft, ExternalLink, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { fireConfetti } from '@/lib/confetti';
+import { recordBattle } from '@/hooks/useEloRating';
 import { cn } from '@/lib/utils';
 
 interface Experiment {
@@ -15,6 +16,7 @@ interface Experiment {
   board_name: string;
   output: string;
   rating?: number | null;
+  elo_rating: number;
 }
 
 interface OutputBattleProps {
@@ -23,6 +25,12 @@ interface OutputBattleProps {
 }
 
 type GamePhase = 'setup' | 'battle' | 'results';
+
+interface EloChange {
+  id: string;
+  before: number;
+  after: number;
+}
 
 export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProps) => {
   const [selectedGoal, setSelectedGoal] = useState<string>('');
@@ -34,6 +42,8 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
   const [totalRounds, setTotalRounds] = useState(0);
   const [winner, setWinner] = useState<Experiment | null>(null);
   const [animatingChoice, setAnimatingChoice] = useState<'left' | 'right' | null>(null);
+  const [lastEloChange, setLastEloChange] = useState<{ winner: EloChange; loser: EloChange } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Get unique goals
   const goals = useMemo(() => {
@@ -76,16 +86,38 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
     setRoundNumber(1);
     setGamePhase('battle');
     setWinner(null);
+    setLastEloChange(null);
   }, [eligibleExperiments]);
 
-  const handleChoice = useCallback((choice: 'left' | 'right') => {
-    if (!currentPair) return;
+  const handleChoice = useCallback(async (choice: 'left' | 'right') => {
+    if (!currentPair || isProcessing) return;
     
     setAnimatingChoice(choice);
+    setIsProcessing(true);
     
+    const winnerExp = choice === 'left' ? currentPair[0] : currentPair[1];
+    const loserExp = choice === 'left' ? currentPair[1] : currentPair[0];
+
+    // Record battle and update Elo ratings
+    const result = await recordBattle(
+      winnerExp.id,
+      loserExp.id,
+      winnerExp.elo_rating,
+      loserExp.elo_rating,
+      selectedGoal,
+      selectedBoard
+    );
+
+    if (result) {
+      setLastEloChange({
+        winner: { id: winnerExp.id, before: winnerExp.elo_rating, after: result.winnerEloAfter },
+        loser: { id: loserExp.id, before: loserExp.elo_rating, after: result.loserEloAfter },
+      });
+      // Update the winner's elo for display
+      winnerExp.elo_rating = result.winnerEloAfter;
+    }
+
     setTimeout(() => {
-      const winnerExp = choice === 'left' ? currentPair[0] : currentPair[1];
-      
       if (contenders.length === 0) {
         setWinner(winnerExp);
         setGamePhase('results');
@@ -97,8 +129,9 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
         setRoundNumber(r => r + 1);
       }
       setAnimatingChoice(null);
-    }, 300);
-  }, [currentPair, contenders]);
+      setIsProcessing(false);
+    }, 400);
+  }, [currentPair, contenders, isProcessing, selectedGoal, selectedBoard]);
 
   const resetGame = useCallback(() => {
     setGamePhase('setup');
@@ -211,6 +244,10 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
             const exp = currentPair[idx];
             const isAnimatingOut = animatingChoice && animatingChoice !== side;
             const isAnimatingIn = animatingChoice === side;
+            const eloChange = lastEloChange && (
+              lastEloChange.winner.id === exp.id ? lastEloChange.winner :
+              lastEloChange.loser.id === exp.id ? lastEloChange.loser : null
+            );
             
             return (
               <Card 
@@ -218,14 +255,20 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
                 className={cn(
                   "cursor-pointer transition-all duration-300 hover:ring-2 hover:ring-primary hover:shadow-lg flex flex-col",
                   isAnimatingOut && "opacity-0 scale-95",
-                  isAnimatingIn && "ring-2 ring-primary shadow-lg scale-[1.02]"
+                  isAnimatingIn && "ring-2 ring-primary shadow-lg scale-[1.02]",
+                  isProcessing && "pointer-events-none"
                 )}
                 onClick={() => handleChoice(side)}
               >
                 <CardContent className="p-4 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-3">
-                    <Badge variant="outline">Option {side === 'left' ? 'A' : 'B'}</Badge>
-                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">Option {side === 'left' ? 'A' : 'B'}</Badge>
+                      <Badge variant="secondary" className="font-mono text-xs">
+                        Elo: {exp.elo_rating}
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground truncate max-w-[120px]">
                       {exp.name}
                     </span>
                   </div>
@@ -239,6 +282,19 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
             );
           })}
         </div>
+
+        {lastEloChange && (
+          <div className="flex justify-center gap-6 mt-4 text-sm animate-fade-in">
+            <span className="flex items-center gap-1 text-green-500">
+              <TrendingUp className="w-4 h-4" />
+              +{lastEloChange.winner.after - lastEloChange.winner.before} Elo
+            </span>
+            <span className="flex items-center gap-1 text-red-500">
+              <TrendingDown className="w-4 h-4" />
+              {lastEloChange.loser.after - lastEloChange.loser.before} Elo
+            </span>
+          </div>
+        )}
 
         <p className="text-center text-sm text-muted-foreground mt-4">
           Click on the better output to advance it to the next round
@@ -263,12 +319,19 @@ export const OutputBattle = ({ experiments, onViewExperiment }: OutputBattleProp
 
         <Card className="w-full max-w-2xl mb-6">
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-yellow-500" />
-              <span className="font-medium">{winner.name}</span>
-              {winner.rating && (
-                <Badge variant="secondary">Rating: {winner.rating}/10</Badge>
-              )}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-yellow-500" />
+                <span className="font-medium">{winner.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="font-mono">
+                  Elo: {winner.elo_rating}
+                </Badge>
+                {winner.rating && (
+                  <Badge variant="outline">Rating: {winner.rating}/10</Badge>
+                )}
+              </div>
             </div>
             <ScrollArea className="max-h-[40vh]">
               <div className="text-sm whitespace-pre-wrap bg-muted/50 rounded-lg p-4">

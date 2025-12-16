@@ -122,6 +122,63 @@ export type Database = {
           },
         ]
       }
+      battle_history: {
+        Row: {
+          board_name: string
+          created_at: string
+          goal: string
+          id: string
+          loser_elo_after: number
+          loser_elo_before: number
+          loser_id: string
+          user_id: string | null
+          winner_elo_after: number
+          winner_elo_before: number
+          winner_id: string
+        }
+        Insert: {
+          board_name: string
+          created_at?: string
+          goal: string
+          id?: string
+          loser_elo_after: number
+          loser_elo_before: number
+          loser_id: string
+          user_id?: string | null
+          winner_elo_after: number
+          winner_elo_before: number
+          winner_id: string
+        }
+        Update: {
+          board_name?: string
+          created_at?: string
+          goal?: string
+          id?: string
+          loser_elo_after?: number
+          loser_elo_before?: number
+          loser_id?: string
+          user_id?: string | null
+          winner_elo_after?: number
+          winner_elo_before?: number
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_history_loser_id_fkey"
+            columns: ["loser_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_history_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_message_reactions: {
         Row: {
           created_at: string
@@ -228,6 +285,7 @@ export type Database = {
           board_pulled_context: string
           created_at: string
           desired: string
+          elo_rating: number
           example: string
           goal: string
           id: string
@@ -248,6 +306,7 @@ export type Database = {
           board_pulled_context?: string
           created_at?: string
           desired?: string
+          elo_rating?: number
           example?: string
           goal?: string
           id?: string
@@ -268,6 +327,7 @@ export type Database = {
           board_pulled_context?: string
           created_at?: string
           desired?: string
+          elo_rating?: number
           example?: string
           goal?: string
           id?: string
