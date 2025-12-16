@@ -30,10 +30,14 @@ interface WorkflowFormData {
 
 interface TriggerWorkflowFormProps {
   collapsed?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function TriggerWorkflowForm({ collapsed = false }: TriggerWorkflowFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: TriggerWorkflowFormProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
+  const setIsOpen = onOpenChange ?? setInternalOpen;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<WorkflowFormData>({
     goal: "",
