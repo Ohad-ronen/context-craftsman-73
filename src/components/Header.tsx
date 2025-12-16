@@ -1,14 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows } from 'lucide-react';
+import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows, Keyboard } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { TagFilter } from '@/components/TagFilter';
 import { Tag } from '@/hooks/useTags';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface HeaderProps {
   experimentCount: number;
   viewMode: 'cards' | 'table' | 'dashboard' | 'compare';
   onViewModeChange: (mode: 'cards' | 'table' | 'dashboard' | 'compare') => void;
   onOpenAnalyzer?: () => void;
+  onOpenShortcuts?: () => void;
   tags?: Tag[];
   selectedTagIds?: string[];
   onToggleTag?: (tagId: string) => void;
@@ -20,6 +22,7 @@ export function Header({
   viewMode, 
   onViewModeChange, 
   onOpenAnalyzer,
+  onOpenShortcuts,
   tags = [],
   selectedTagIds = [],
   onToggleTag,
@@ -41,7 +44,26 @@ export function Header({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* View Toggle */}
+            {/* Keyboard shortcuts hint */}
+            {onOpenShortcuts && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={onOpenShortcuts}
+                      className="hidden sm:flex h-8 w-8"
+                    >
+                      <Keyboard className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Keyboard shortcuts <kbd className="ml-1 px-1.5 py-0.5 text-xs bg-muted rounded">?</kbd></p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <div className="flex items-center rounded-lg border border-border p-1">
               <Button
                 variant={viewMode === 'dashboard' ? 'secondary' : 'ghost'}
