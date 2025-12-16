@@ -14,7 +14,9 @@ import {
   User,
   Settings,
   LogOut,
-  ListTodo
+  ListTodo,
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -28,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
@@ -40,6 +43,12 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks';
 
@@ -98,33 +107,43 @@ export function AppSidebar({
   unratedCount = 0,
   pendingTaskCount = 0,
 }: AppSidebarProps) {
+  const { state, toggleSidebar } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
   return (
-    <Sidebar className="border-r border-border/50">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-3 group hover-lift cursor-default">
+    <Sidebar collapsible="icon" className="border-r border-border/50">
+      <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
+        <div className={cn(
+          "flex items-center gap-3 group hover-lift cursor-default",
+          isCollapsed && "justify-center"
+        )}>
           <div className="p-2 rounded-xl bg-primary/10 transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
             <Layers className="w-5 h-5 text-primary transition-transform duration-300 group-hover:scale-110" />
           </div>
-          <div>
-            <h1 className="text-base font-bold">Agent Tracker</h1>
-            <p className="text-xs text-muted-foreground">
-              {experimentCount} experiment{experimentCount !== 1 ? 's' : ''}
-            </p>
-          </div>
+          {!isCollapsed && (
+            <div className="animate-fade-in">
+              <h1 className="text-base font-bold">Agent Tracker</h1>
+              <p className="text-xs text-muted-foreground">
+                {experimentCount} experiment{experimentCount !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Primary Action */}
-        <SidebarGroup className="p-3" data-tour="trigger-workflow">
-          <TriggerWorkflowForm />
-        </SidebarGroup>
+        {/* Primary Action - Hide when collapsed */}
+        {!isCollapsed && (
+          <SidebarGroup className="p-3 animate-fade-in" data-tour="trigger-workflow">
+            <TriggerWorkflowForm />
+          </SidebarGroup>
+        )}
 
         {/* Views */}
         <SidebarGroup data-tour="view-modes">
-          <SidebarGroupLabel>Views</SidebarGroupLabel>
+          {!isCollapsed && <SidebarGroupLabel>Views</SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu className="stagger-children">
+            <SidebarMenu className={cn(!isCollapsed && "stagger-children")}>
               {viewItems.map((item) => (
                 <SidebarMenuItem key={item.id} className="relative">
                   {/* Active indicator bar */}
@@ -134,6 +153,7 @@ export function AppSidebar({
                   <SidebarMenuButton
                     onClick={() => onViewModeChange(item.id)}
                     isActive={viewMode === item.id}
+                    tooltip={item.title}
                     className={cn(
                       "group transition-all duration-200 hover:-translate-y-0.5 active:scale-95",
                       viewMode === item.id && "bg-primary/10 text-primary animate-scale-in"
@@ -154,18 +174,19 @@ export function AppSidebar({
 
         {/* Tools */}
         <SidebarGroup data-tour="ai-tools">
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
+          {!isCollapsed && <SidebarGroupLabel>Tools</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
               {onOpenBulkEval && (
                 <SidebarMenuItem>
                   <SidebarMenuButton 
                     onClick={onOpenBulkEval}
+                    tooltip="Bulk Evaluate"
                     className="group transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
                   >
                     <Bot className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
                     <span>Bulk Evaluate</span>
-                    {unratedCount > 0 && (
+                    {unratedCount > 0 && !isCollapsed && (
                       <Badge 
                         variant="secondary" 
                         className={cn(
@@ -186,6 +207,7 @@ export function AppSidebar({
                 <SidebarMenuButton
                   onClick={() => onViewModeChange('tasks')}
                   isActive={viewMode === 'tasks'}
+                  tooltip="Task Manager"
                   className={cn(
                     "group transition-all duration-200 hover:-translate-y-0.5 active:scale-95",
                     viewMode === 'tasks' && 'bg-primary/10 text-primary animate-scale-in'
@@ -196,7 +218,7 @@ export function AppSidebar({
                     viewMode === 'tasks' && "text-primary animate-bounce-in"
                   )} />
                   <span>Task Manager</span>
-                  {pendingTaskCount > 0 && (
+                  {pendingTaskCount > 0 && !isCollapsed && (
                     <Badge 
                       variant="secondary" 
                       className={cn(
@@ -215,10 +237,41 @@ export function AppSidebar({
 
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/50">
+      <SidebarFooter className={cn("p-3 border-t border-border/50", isCollapsed && "p-2")}>
+        {/* Collapse toggle button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className={cn(
+                "w-full h-8 mb-2 text-muted-foreground hover:text-foreground transition-all duration-200",
+                isCollapsed && "w-8 mx-auto"
+              )}
+            >
+              {isCollapsed ? (
+                <PanelLeft className="w-4 h-4" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4" />
+              )}
+              {!isCollapsed && <span className="ml-2 text-sm">Collapse</span>}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" hidden={!isCollapsed}>
+            Expand sidebar
+          </TooltipContent>
+        </Tooltip>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="group w-full justify-start text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 active:scale-95">
+            <SidebarMenuButton 
+              tooltip="Settings"
+              className={cn(
+                "group w-full justify-start text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 active:scale-95",
+                isCollapsed && "justify-center"
+              )}
+            >
               <Settings className="w-4 h-4 transition-transform duration-500 group-hover:animate-spin-slow" />
               <span>Settings</span>
             </SidebarMenuButton>
