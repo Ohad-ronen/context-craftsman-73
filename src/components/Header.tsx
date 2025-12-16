@@ -61,6 +61,11 @@ export function Header({ title }: HeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+              <User className="mr-2 h-4 w-4" />
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
