@@ -16,6 +16,7 @@ import {
   Moon,
   User
 } from 'lucide-react';
+import { NotificationCenter } from '@/components/NotificationCenter';
 import { useTheme } from 'next-themes';
 import {
   Sidebar,
@@ -262,13 +263,16 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/50 space-y-1">
-        <SidebarMenuButton 
-          onClick={() => window.location.href = '/profile'}
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
-        >
-          <User className="w-4 h-4" />
-          <span>Profile Settings</span>
-        </SidebarMenuButton>
+        <div className="flex items-center justify-between mb-2">
+          <SidebarMenuButton 
+            onClick={() => window.location.href = '/profile'}
+            className="flex-1 justify-start text-muted-foreground hover:text-foreground"
+          >
+            <User className="w-4 h-4" />
+            <span>Profile Settings</span>
+          </SidebarMenuButton>
+          <NotificationCenter />
+        </div>
         <ThemeToggleButton />
         {onOpenShortcuts && (
           <SidebarMenuButton 

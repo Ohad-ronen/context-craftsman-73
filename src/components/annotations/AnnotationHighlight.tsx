@@ -11,6 +11,10 @@ import { Pencil, Trash2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MentionInput } from './MentionInput';
 import { MentionText } from './MentionText';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/hooks/useProfiles';
+import { extractMentionedUsers } from '@/lib/mentions';
+import { createMentionNotification } from '@/hooks/useNotifications';
 
 interface AnnotationHighlightProps {
   annotation: Annotation;
@@ -36,13 +40,38 @@ export function AnnotationHighlight({
   onUpdate,
   onDelete,
 }: AnnotationHighlightProps) {
+  const { user } = useAuth();
+  const { profiles } = useProfiles();
   const [isEditing, setIsEditing] = useState(false);
   const [editNote, setEditNote] = useState(annotation.note);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSaveEdit = async () => {
     if (editNote.trim() && editNote !== annotation.note) {
-      await onUpdate(annotation.id, editNote.trim());
+      const success = await onUpdate(annotation.id, editNote.trim());
+      
+      // Check for new mentions and create notifications
+      if (success && user) {
+        const oldMentions = extractMentionedUsers(annotation.note, profiles);
+        const newMentions = extractMentionedUsers(editNote, profiles);
+        
+        // Find newly mentioned users (not in old mentions)
+        const newlyMentioned = newMentions.filter(
+          (newUser) => !oldMentions.some((oldUser) => oldUser.id === newUser.id)
+        );
+        
+        for (const mentionedUser of newlyMentioned) {
+          if (mentionedUser.id !== user.id) {
+            await createMentionNotification({
+              mentionedUserId: mentionedUser.id,
+              fromUserId: user.id,
+              experimentId: annotation.experiment_id,
+              annotationId: annotation.id,
+              highlightedText: annotation.highlighted_text,
+            });
+          }
+        }
+      }
     }
     setIsEditing(false);
   };
