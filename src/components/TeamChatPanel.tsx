@@ -6,11 +6,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useTeamChat, ChatMessage } from '@/hooks/useTeamChat';
 import { useChatReactions, MessageReaction } from '@/hooks/useChatReactions';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/hooks/useProfiles';
 import { Experiment } from '@/hooks/useExperiments';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X, Pencil, Check } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X, Pencil, Check, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
+import { ChatInputWithMentions, parseMentions, extractMentionedUserIds } from './ChatInputWithMentions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 
@@ -26,13 +28,15 @@ interface TeamChatPanelProps {
 function MessageContent({ 
   message, 
   isOwnMessage,
-  onViewExperiment 
+  onViewExperiment,
+  currentUserId
 }: { 
   message: string; 
   isOwnMessage: boolean;
   onViewExperiment?: (id: string) => void;
+  currentUserId?: string;
 }) {
-  const parts = parseExperimentMentions(message);
+  const parts = parseMentions(message);
   
   return (
     <span>
@@ -54,6 +58,25 @@ function MessageContent({
             </button>
           );
         }
+        if (part.type === 'user' && part.id) {
+          const isMentionedUser = part.id === currentUserId;
+          return (
+            <span
+              key={index}
+              className={cn(
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium",
+                isOwnMessage 
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : isMentionedUser
+                    ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                    : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+              )}
+            >
+              <User className="h-3 w-3" />
+              {part.content}
+            </span>
+          );
+        }
         return <span key={index}>{part.content}</span>;
       })}
     </span>
@@ -62,6 +85,7 @@ function MessageContent({
 
 export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment }: TeamChatPanelProps) {
   const { user } = useAuth();
+  const { profiles } = useProfiles();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
   const avatarUrl = user?.user_metadata?.avatar_url;
   const { messages, isLoading, sendMessage, deleteMessage, updateMessage, typingUsers, setTyping, onlineUsers } = useTeamChat(user?.id, displayName, avatarUrl);
@@ -94,12 +118,37 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
     }
   };
 
+  const createMentionNotifications = async (messageText: string, senderId: string, senderName: string) => {
+    const mentionedUserIds = extractMentionedUserIds(messageText);
+    
+    // Filter out the sender from notifications
+    const usersToNotify = mentionedUserIds.filter(id => id !== senderId);
+    
+    for (const userId of usersToNotify) {
+      try {
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          from_user_id: senderId,
+          type: 'mention',
+          title: 'New mention',
+          message: `${senderName} mentioned you in a chat message`,
+          link: '/?chat=open'
+        });
+      } catch (error) {
+        console.error('Error creating notification:', error);
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || isSending) return;
 
     setIsSending(true);
-    const success = await sendMessage(newMessage.trim(), user.id, replyingTo?.id);
+    const messageText = newMessage.trim();
+    const success = await sendMessage(messageText, user.id, replyingTo?.id);
     if (success) {
+      // Create notifications for mentioned users
+      await createMentionNotifications(messageText, user.id, displayName);
       setNewMessage('');
       setReplyingTo(null);
     }
@@ -315,6 +364,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                             message={msg.message} 
                             isOwnMessage={isOwnMessage}
                             onViewExperiment={onViewExperiment}
+                            currentUserId={user?.id}
                           />
                         </div>
                       )}
@@ -429,7 +479,8 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                   onChange={handleInputChange}
                   onSubmit={handleSendMessage}
                   experiments={experiments}
-                  placeholder={replyingTo ? "Write a reply..." : "Type # to mention experiment..."}
+                  profiles={profiles}
+                  placeholder={replyingTo ? "Write a reply..." : "Type @ to mention users, # for experiments..."}
                   disabled={isSending}
                 />
                 <Button 
