@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Experiment } from '@/hooks/useExperiments';
+import { Tag } from '@/hooks/useTags';
+import { TagBadge } from '@/components/TagBadge';
 import {
   Table,
   TableBody,
@@ -24,12 +26,13 @@ import { format } from 'date-fns';
 interface ExperimentsTableProps {
   experiments: Experiment[];
   onViewExperiment: (id: string) => void;
+  getTagsForExperiment?: (experimentId: string) => Tag[];
 }
 
 type SortField = 'name' | 'rating' | 'created_at' | 'updated_at' | 'board_name';
 type SortDirection = 'asc' | 'desc';
 
-export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsTableProps) {
+export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExperiment }: ExperimentsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -166,6 +169,7 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
                   <SortIcon field="name" />
                 </div>
               </TableHead>
+              <TableHead className="hidden sm:table-cell">Tags</TableHead>
               <TableHead 
                 className="cursor-pointer hover:text-foreground transition-colors"
                 onClick={() => handleSort('board_name')}
@@ -194,15 +198,6 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
                   <SortIcon field="created_at" />
                 </div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:text-foreground transition-colors hidden lg:table-cell"
-                onClick={() => handleSort('updated_at')}
-              >
-                <div className="flex items-center">
-                  Updated
-                  <SortIcon field="updated_at" />
-                </div>
-              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -214,62 +209,72 @@ export function ExperimentsTable({ experiments, onViewExperiment }: ExperimentsT
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAndSortedExperiments.map((experiment) => (
-                <TableRow 
-                  key={experiment.id}
-                  className="cursor-pointer hover:bg-secondary/30 transition-colors"
-                  onClick={() => onViewExperiment(experiment.id)}
-                >
-                  <TableCell className="font-medium">
-                    <div>
-                      <div className="font-semibold">{experiment.name}</div>
-                      {experiment.goal && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {truncateText(experiment.goal, 40)}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {truncateText(experiment.board_name, 20) || '—'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {experiment.rating ? (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
-                        <span>{experiment.rating}/5</span>
+              filteredAndSortedExperiments.map((experiment) => {
+                const tags = getTagsForExperiment?.(experiment.id) || [];
+                return (
+                  <TableRow 
+                    key={experiment.id}
+                    className="cursor-pointer hover:bg-secondary/30 transition-colors"
+                    onClick={() => onViewExperiment(experiment.id)}
+                  >
+                    <TableCell className="font-medium">
+                      <div>
+                        <div className="font-semibold">{experiment.name}</div>
+                        {experiment.goal && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {truncateText(experiment.goal, 40)}
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="text-sm text-muted-foreground font-mono max-w-[200px]">
-                      {truncateText(experiment.output, 60) || <span className="italic">No output</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
-                    {format(new Date(experiment.created_at), 'MMM d, yyyy')}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
-                    {format(new Date(experiment.updated_at), 'MMM d, yyyy')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewExperiment(experiment.id);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex flex-wrap gap-1 max-w-[150px]">
+                        {tags.slice(0, 2).map(tag => (
+                          <TagBadge key={tag.id} name={tag.name} color={tag.color} />
+                        ))}
+                        {tags.length > 2 && (
+                          <span className="text-xs text-muted-foreground">+{tags.length - 2}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {truncateText(experiment.board_name, 20) || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {experiment.rating ? (
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
+                          <span>{experiment.rating}/5</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="text-sm text-muted-foreground font-mono max-w-[200px]">
+                        {truncateText(experiment.output, 60) || <span className="italic">No output</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
+                      {format(new Date(experiment.created_at), 'MMM d, yyyy')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewExperiment(experiment.id);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

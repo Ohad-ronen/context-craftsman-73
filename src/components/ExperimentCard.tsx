@@ -1,14 +1,17 @@
 import { Experiment } from '@/hooks/useExperiments';
+import { Tag } from '@/hooks/useTags';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TagBadge } from '@/components/TagBadge';
 import { Star, Clock, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ExperimentCardProps {
   experiment: Experiment;
+  tags?: Tag[];
   onClick: () => void;
 }
 
-export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
+export function ExperimentCard({ experiment, tags = [], onClick }: ExperimentCardProps) {
   return (
     <Card 
       className="glass-card cursor-pointer hover:border-primary/50 transition-all duration-300 group animate-slide-up"
@@ -27,6 +30,18 @@ export function ExperimentCard({ experiment, onClick }: ExperimentCardProps) {
             )}
           </div>
         </div>
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {tags.slice(0, 3).map(tag => (
+              <TagBadge key={tag.id} name={tag.name} color={tag.color} />
+            ))}
+            {tags.length > 3 && (
+              <span className="text-xs text-muted-foreground self-center">
+                +{tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">

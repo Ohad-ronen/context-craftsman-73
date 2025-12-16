@@ -1,7 +1,9 @@
 import { Experiment } from '@/hooks/useExperiments';
+import { Tag } from '@/hooks/useTags';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown } from 'lucide-react';
+import { TagInput } from '@/components/TagInput';
+import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
 import { JsonViewer } from './JsonViewer';
 import { cn } from '@/lib/utils';
@@ -13,6 +15,11 @@ interface ExperimentDetailProps {
   onEdit: () => void;
   onDelete: () => void;
   onUpdate?: (id: string, data: { rating?: number; notes?: string }) => Promise<void>;
+  tags?: Tag[];
+  experimentTags?: Tag[];
+  onAddTag?: (tagId: string) => Promise<boolean>;
+  onRemoveTag?: (tagId: string) => Promise<boolean>;
+  onCreateTag?: (name: string, color: string) => Promise<Tag | null>;
 }
 
 const sections = [
@@ -30,7 +37,18 @@ const sections = [
   { key: 'output', label: 'The Output', icon: FileOutput, color: 'text-step-output', bgColor: 'bg-step-output/10', borderColor: 'border-l-step-output' },
 ];
 
-export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdate }: ExperimentDetailProps) {
+export function ExperimentDetail({ 
+  experiment, 
+  onBack, 
+  onEdit, 
+  onDelete, 
+  onUpdate,
+  tags = [],
+  experimentTags = [],
+  onAddTag,
+  onRemoveTag,
+  onCreateTag
+}: ExperimentDetailProps) {
   const handleEvaluationComplete = async (score: number, notes: string) => {
     if (onUpdate) {
       await onUpdate(experiment.id, { rating: score, notes });
@@ -72,6 +90,29 @@ export function ExperimentDetail({ experiment, onBack, onEdit, onDelete, onUpdat
           </Button>
         </div>
       </div>
+
+      {/* Tags Section */}
+      {onAddTag && onRemoveTag && onCreateTag && (
+        <Card className="glass-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-3 text-base">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Tags className="w-4 h-4 text-primary" />
+              </div>
+              <span>Tags</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TagInput
+              availableTags={tags}
+              selectedTags={experimentTags}
+              onAddTag={onAddTag}
+              onRemoveTag={onRemoveTag}
+              onCreateTag={onCreateTag}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Flow Sections */}
       <div className="space-y-4">

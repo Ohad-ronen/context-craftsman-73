@@ -1,15 +1,30 @@
 import { Button } from '@/components/ui/button';
 import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
+import { TagFilter } from '@/components/TagFilter';
+import { Tag } from '@/hooks/useTags';
 
 interface HeaderProps {
   experimentCount: number;
   viewMode: 'cards' | 'table' | 'dashboard' | 'compare';
   onViewModeChange: (mode: 'cards' | 'table' | 'dashboard' | 'compare') => void;
   onOpenAnalyzer?: () => void;
+  tags?: Tag[];
+  selectedTagIds?: string[];
+  onToggleTag?: (tagId: string) => void;
+  onClearTagFilter?: () => void;
 }
 
-export function Header({ experimentCount, viewMode, onViewModeChange, onOpenAnalyzer }: HeaderProps) {
+export function Header({ 
+  experimentCount, 
+  viewMode, 
+  onViewModeChange, 
+  onOpenAnalyzer,
+  tags = [],
+  selectedTagIds = [],
+  onToggleTag,
+  onClearTagFilter
+}: HeaderProps) {
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -65,6 +80,15 @@ export function Header({ experimentCount, viewMode, onViewModeChange, onOpenAnal
                 <span className="hidden sm:inline">Compare</span>
               </Button>
             </div>
+            
+            {onToggleTag && onClearTagFilter && (
+              <TagFilter
+                availableTags={tags}
+                selectedTagIds={selectedTagIds}
+                onToggleTag={onToggleTag}
+                onClearAll={onClearTagFilter}
+              />
+            )}
             
             {onOpenAnalyzer && (
               <Button variant="outline" onClick={onOpenAnalyzer} className="gap-2">
