@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+// Add shimmer keyframe to the config
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -109,8 +111,8 @@ export default {
           "50%": { opacity: "0.7" },
         },
         "shimmer": {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
         "float": {
           "0%, 100%": { transform: "translateY(0)" },
