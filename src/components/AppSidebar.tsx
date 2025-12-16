@@ -10,8 +10,11 @@ import {
   Layers,
   Tag,
   Trash2,
-  Settings
+  Settings,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import {
   Sidebar,
   SidebarContent,
@@ -64,6 +67,21 @@ const viewItems = [
   { id: 'table' as ViewMode, title: 'Table', icon: Table2 },
   { id: 'compare' as ViewMode, title: 'Compare', icon: GitCompareArrows },
 ];
+
+function ThemeToggleButton() {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
+  
+  return (
+    <SidebarMenuButton 
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="w-full justify-start text-muted-foreground hover:text-foreground"
+    >
+      {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+    </SidebarMenuButton>
+  );
+}
 
 export function AppSidebar({
   experimentCount,
@@ -241,7 +259,8 @@ export function AppSidebar({
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/50">
+      <SidebarFooter className="p-3 border-t border-border/50 space-y-1">
+        <ThemeToggleButton />
         {onOpenShortcuts && (
           <SidebarMenuButton 
             onClick={onOpenShortcuts}
