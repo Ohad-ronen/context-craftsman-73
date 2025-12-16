@@ -21,6 +21,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { TeamChatPanel } from '@/components/TeamChatPanel';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
+import { OutputBattle } from '@/components/OutputBattle';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,7 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
@@ -162,6 +163,7 @@ const Index = () => {
     { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
     { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
     { key: 'a', handler: () => { setViewMode('insights'); setView('list'); }, description: 'AI Insights view', category: 'Navigation' },
+    { key: 'o', handler: () => { setViewMode('battle'); setView('list'); }, description: 'Output Battle', category: 'Navigation' },
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'm', handler: () => setChatOpen(prev => !prev), description: 'Toggle team chat', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
@@ -262,7 +264,12 @@ const Index = () => {
           <main className="flex-1 p-6 overflow-auto">
             {view === 'list' && (
               <>
-                {viewMode === 'insights' ? (
+                {viewMode === 'battle' ? (
+                  <OutputBattle 
+                    experiments={filteredExperiments}
+                    onViewExperiment={handleViewExperiment}
+                  />
+                ) : viewMode === 'insights' ? (
                   <ExperimentAnalyzer experiments={filteredExperiments} />
                 ) : viewMode === 'dashboard' ? (
                   <Dashboard experiments={filteredExperiments} />
