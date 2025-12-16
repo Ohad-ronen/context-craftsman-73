@@ -7,9 +7,10 @@ import {
   HoverCardPortal,
 } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Pencil, Trash2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MentionInput } from './MentionInput';
+import { MentionText } from './MentionText';
 
 interface AnnotationHighlightProps {
   annotation: Annotation;
@@ -76,14 +77,14 @@ export function AnnotationHighlight({
             <div className="flex items-start gap-2">
               <MessageSquare className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
               {isEditing ? (
-                <Textarea
+                <MentionInput
                   value={editNote}
-                  onChange={(e) => setEditNote(e.target.value)}
-                  className="min-h-[60px] text-sm resize-none"
+                  onChange={setEditNote}
+                  className="min-h-[60px]"
                   autoFocus
                 />
               ) : (
-              <p className="text-sm leading-relaxed">{annotation.note}</p>
+                <MentionText text={annotation.note} className="text-sm leading-relaxed" />
               )}
             </div>
             
