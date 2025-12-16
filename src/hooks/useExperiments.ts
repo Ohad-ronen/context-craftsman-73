@@ -20,6 +20,7 @@ export interface Experiment {
   rating: number | null;
   notes: string | null;
   elo_rating: number;
+  folder_id: string | null;
   created_at: string;
   updated_at: string;
 }
