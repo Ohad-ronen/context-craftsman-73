@@ -1,26 +1,65 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamChat } from '@/hooks/useTeamChat';
 import { useAuth } from '@/hooks/useAuth';
+import { Experiment } from '@/hooks/useExperiments';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
 
 interface TeamChatPanelProps {
   isOpen: boolean;
   onToggle: () => void;
+  experiments: Experiment[];
+  onViewExperiment?: (id: string) => void;
 }
 
-export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
+function MessageContent({ 
+  message, 
+  isOwnMessage,
+  onViewExperiment 
+}: { 
+  message: string; 
+  isOwnMessage: boolean;
+  onViewExperiment?: (id: string) => void;
+}) {
+  const parts = parseExperimentMentions(message);
+  
+  return (
+    <span>
+      {parts.map((part, index) => {
+        if (part.type === 'experiment' && part.id) {
+          return (
+            <button
+              key={index}
+              onClick={() => onViewExperiment?.(part.id!)}
+              className={cn(
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors",
+                isOwnMessage 
+                  ? "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
+                  : "bg-primary/10 hover:bg-primary/20 text-primary"
+              )}
+            >
+              <FlaskConical className="h-3 w-3" />
+              {part.content}
+            </button>
+          );
+        }
+        return <span key={index}>{part.content}</span>;
+      })}
+    </span>
+  );
+}
+
+export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment }: TeamChatPanelProps) {
   const { messages, isLoading, sendMessage, deleteMessage } = useTeamChat();
   const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -29,15 +68,7 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
     }
   }, [messages]);
 
-  // Focus input when panel opens
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isOpen]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || isSending) return;
 
     setIsSending(true);
@@ -87,7 +118,7 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
           </div>
           <div className="flex-1">
             <h2 className="font-semibold">Team Chat</h2>
-            <p className="text-xs text-muted-foreground">Collaborate on experiments</p>
+            <p className="text-xs text-muted-foreground">Use # to link experiments</p>
           </div>
         </div>
 
@@ -142,13 +173,17 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
                       </div>
                       <div
                         className={cn(
-                          "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words",
+                          "inline-block px-3 py-2 rounded-lg text-sm max-w-[85%] break-words text-left",
                           isOwnMessage
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted"
                         )}
                       >
-                        {msg.message}
+                        <MessageContent 
+                          message={msg.message} 
+                          isOwnMessage={isOwnMessage}
+                          onViewExperiment={onViewExperiment}
+                        />
                       </div>
                     </div>
                   </div>
@@ -159,18 +194,23 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-border/50">
+        <div className="p-4 border-t border-border/50">
           {user ? (
             <div className="flex gap-2">
-              <Input
-                ref={inputRef}
+              <ChatInputWithMentions
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1"
+                onChange={setNewMessage}
+                onSubmit={handleSendMessage}
+                experiments={experiments}
+                placeholder="Type # to mention experiment..."
                 disabled={isSending}
               />
-              <Button type="submit" size="icon" disabled={!newMessage.trim() || isSending}>
+              <Button 
+                type="button" 
+                size="icon" 
+                disabled={!newMessage.trim() || isSending}
+                onClick={handleSendMessage}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -179,7 +219,7 @@ export function TeamChatPanel({ isOpen, onToggle }: TeamChatPanelProps) {
               Sign in to chat with your team
             </p>
           )}
-        </form>
+        </div>
       </div>
     </>
   );
