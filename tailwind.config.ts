@@ -126,6 +126,32 @@ export default {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "spin-slow": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "slide-in-left": {
+          from: { transform: "scaleX(0)", opacity: "0" },
+          to: { transform: "scaleX(1)", opacity: "1" },
+        },
+        "icon-bars-grow": {
+          "0%, 100%": { transform: "scaleY(1)" },
+          "50%": { transform: "scaleY(1.2)" },
+        },
+        "swords-clash": {
+          "0%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-15deg)" },
+          "75%": { transform: "rotate(15deg)" },
+          "100%": { transform: "rotate(0deg)" },
+        },
+        "brain-think": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+        },
+        "arrows-swap": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(180deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -140,6 +166,12 @@ export default {
         "float": "float 3s ease-in-out infinite",
         "glow": "glow 2s ease-in-out infinite",
         "count-up": "count-up 0.5s ease-out forwards",
+        "spin-slow": "spin-slow 3s linear infinite",
+        "slide-in-left": "slide-in-left 0.2s ease-out forwards",
+        "icon-bars-grow": "icon-bars-grow 0.4s ease-in-out",
+        "swords-clash": "swords-clash 0.4s ease-in-out",
+        "brain-think": "brain-think 0.6s ease-in-out",
+        "arrows-swap": "arrows-swap 0.3s ease-in-out",
       },
     },
   },
