@@ -18,6 +18,7 @@ import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { CardSkeleton } from '@/components/skeletons/CardSkeleton';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { TeamChatPanel } from '@/components/TeamChatPanel';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -46,6 +47,7 @@ const Index = () => {
   const [bulkEvalOpen, setBulkEvalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const selectedExperiment = selectedId ? getExperiment(selectedId) : undefined;
 
@@ -149,6 +151,7 @@ const Index = () => {
     { key: 'Escape', handler: () => { 
       if (shortcutsOpen) setShortcutsOpen(false);
       else if (bulkEvalOpen) setBulkEvalOpen(false);
+      else if (chatOpen) setChatOpen(false);
       else if (view !== 'list') handleBack();
       else setSelectedTagIds([]);
     }, description: 'Close dialog / Go back / Clear filters', category: 'General' },
@@ -158,8 +161,9 @@ const Index = () => {
     { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
     { key: 'a', handler: () => { setViewMode('insights'); setView('list'); }, description: 'AI Insights view', category: 'Navigation' },
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
+    { key: 'm', handler: () => setChatOpen(prev => !prev), description: 'Toggle team chat', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
-  ], [view, shortcutsOpen, bulkEvalOpen]);
+  ], [view, shortcutsOpen, bulkEvalOpen, chatOpen]);
 
   useKeyboardShortcuts(shortcuts, !deleteDialogOpen);
 
@@ -354,6 +358,8 @@ const Index = () => {
           onOpenChange={setShortcutsOpen}
           shortcuts={shortcuts}
         />
+
+        <TeamChatPanel isOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
       </div>
     </SidebarProvider>
   );
