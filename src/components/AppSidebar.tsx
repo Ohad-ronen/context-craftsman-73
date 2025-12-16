@@ -132,12 +132,10 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Primary Action - Hide when collapsed */}
-        {!isCollapsed && (
-          <SidebarGroup className="p-3 animate-fade-in" data-tour="trigger-workflow">
-            <TriggerWorkflowForm />
-          </SidebarGroup>
-        )}
+        {/* Primary Action */}
+        <SidebarGroup className={cn("p-3", isCollapsed && "p-2 flex justify-center")} data-tour="trigger-workflow">
+          <TriggerWorkflowForm collapsed={isCollapsed} />
+        </SidebarGroup>
 
         {/* Views */}
         <SidebarGroup data-tour="view-modes">
