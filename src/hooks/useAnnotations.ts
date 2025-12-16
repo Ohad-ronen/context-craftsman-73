@@ -99,6 +99,23 @@ export function useAnnotations(experimentId: string | undefined) {
         .single();
 
       if (error) throw error;
+
+      // Fetch experiment name and user profile for chat message
+      const [experimentResult, profileResult] = await Promise.all([
+        supabase.from('experiments').select('name').eq('id', data.experiment_id).single(),
+        supabase.from('profiles').select('display_name, email').eq('id', data.user_id).single()
+      ]);
+
+      const experimentName = experimentResult.data?.name || 'Unknown Experiment';
+      const userName = profileResult.data?.display_name || profileResult.data?.email?.split('@')[0] || 'Someone';
+
+      // Post to team chat
+      const chatMessage = `${userName} added annotation on #[${experimentName}](${data.experiment_id}): "${data.note}"`;
+      await supabase.from('team_chat_messages').insert({
+        message: chatMessage,
+        user_id: data.user_id
+      });
+
       toast.success('Annotation added');
       return newAnnotation as Annotation;
     } catch (error) {
