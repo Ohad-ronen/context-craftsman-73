@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Layers, LayoutGrid, Table2, Brain } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
@@ -7,12 +6,10 @@ interface HeaderProps {
   experimentCount: number;
   viewMode: 'cards' | 'table';
   onViewModeChange: (mode: 'cards' | 'table') => void;
-  csvImport?: ReactNode;
-  googleSheetsImport?: ReactNode;
   onOpenAnalyzer?: () => void;
 }
 
-export function Header({ experimentCount, viewMode, onViewModeChange, csvImport, googleSheetsImport, onOpenAnalyzer }: HeaderProps) {
+export function Header({ experimentCount, viewMode, onViewModeChange, onOpenAnalyzer }: HeaderProps) {
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -57,10 +54,6 @@ export function Header({ experimentCount, viewMode, onViewModeChange, csvImport,
                 <span className="hidden sm:inline">Insights</span>
               </Button>
             )}
-            
-            {csvImport}
-            
-            {googleSheetsImport}
             
             <TriggerWorkflowForm />
           </div>
