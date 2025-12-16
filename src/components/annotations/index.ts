@@ -1,4 +1,5 @@
 export { AnnotatableText } from './AnnotatableText';
+export { AnnotatableAnalysisText } from './AnnotatableAnalysisText';
 export { AnnotatableJson } from './AnnotatableJson';
 export { AnnotationHighlight } from './AnnotationHighlight';
 export { AnnotationPopover } from './AnnotationPopover';

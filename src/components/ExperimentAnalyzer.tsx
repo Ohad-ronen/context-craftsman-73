@@ -3,15 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, X, Save, History, Trash2, ChevronLeft, GitCompareArrows } from "lucide-react";
+import { Loader2, Brain, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle2, Save, History, Trash2, ChevronLeft, GitCompareArrows, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Experiment } from "@/hooks/useExperiments";
 import { useExperimentAnalyses, Analysis, SavedAnalysis } from "@/hooks/useExperimentAnalyses";
+import { useAnalysisAnnotations } from "@/hooks/useAnalysisAnnotations";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AnalysisComparison } from "@/components/AnalysisComparison";
+import { AnnotatableAnalysisText } from "@/components/annotations/AnnotatableAnalysisText";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,13 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
   const [compareSelection, setCompareSelection] = useState<string[]>([]);
   const { toast } = useToast();
   const { analyses, saveAnalysis, deleteAnalysis } = useExperimentAnalyses();
+  const { 
+    annotations: analysisAnnotations, 
+    createAnnotation: createAnalysisAnnotation,
+    updateAnnotation: updateAnalysisAnnotation,
+    deleteAnnotation: deleteAnalysisAnnotation,
+    getAnnotationsForField 
+  } = useAnalysisAnnotations(selectedSavedAnalysis?.id);
 
   // Load the latest analysis on mount
   useEffect(() => {
@@ -457,10 +465,29 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                       <CardTitle className="flex items-center gap-2">
                         <Lightbulb className="h-5 w-5 text-primary" />
                         Key Insights
+                        {selectedSavedAnalysis && (
+                          <Badge variant="outline" className="ml-auto text-xs font-normal">
+                            <MessageSquare className="h-3 w-3 mr-1" />
+                            Select text to annotate
+                          </Badge>
+                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg">{currentAnalysis.overallInsights}</p>
+                      {selectedSavedAnalysis ? (
+                        <AnnotatableAnalysisText
+                          content={currentAnalysis.overallInsights}
+                          fieldName="overallInsights"
+                          analysisId={selectedSavedAnalysis.id}
+                          annotations={getAnnotationsForField('overallInsights')}
+                          onCreateAnnotation={createAnalysisAnnotation}
+                          onUpdateAnnotation={updateAnalysisAnnotation}
+                          onDeleteAnnotation={deleteAnalysisAnnotation}
+                          className="text-lg"
+                        />
+                      ) : (
+                        <p className="text-lg">{currentAnalysis.overallInsights}</p>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -481,7 +508,20 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                               <Badge variant="outline">{i + 1}</Badge>
                               <h4 className="font-medium">{rec.title}</h4>
                             </div>
-                            <p className="text-sm text-muted-foreground">{rec.description}</p>
+                            {selectedSavedAnalysis ? (
+                              <AnnotatableAnalysisText
+                                content={rec.description}
+                                fieldName={`recommendation-${i}`}
+                                analysisId={selectedSavedAnalysis.id}
+                                annotations={getAnnotationsForField(`recommendation-${i}`)}
+                                onCreateAnnotation={createAnalysisAnnotation}
+                                onUpdateAnnotation={updateAnalysisAnnotation}
+                                onDeleteAnnotation={deleteAnalysisAnnotation}
+                                className="text-sm text-muted-foreground"
+                              />
+                            ) : (
+                              <p className="text-sm text-muted-foreground">{rec.description}</p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -500,14 +540,43 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                           {currentAnalysis.contextPatterns.findings.map((finding, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm">
                               <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                              {finding}
+                              {selectedSavedAnalysis ? (
+                                <AnnotatableAnalysisText
+                                  content={finding}
+                                  fieldName={`contextPatterns-finding-${i}`}
+                                  analysisId={selectedSavedAnalysis.id}
+                                  annotations={getAnnotationsForField(`contextPatterns-finding-${i}`)}
+                                  onCreateAnnotation={createAnalysisAnnotation}
+                                  onUpdateAnnotation={updateAnalysisAnnotation}
+                                  onDeleteAnnotation={deleteAnalysisAnnotation}
+                                  className=""
+                                />
+                              ) : (
+                                <span>{finding}</span>
+                              )}
                             </li>
                           ))}
                         </ul>
                         <div className="pt-3 border-t">
-                          <p className="text-sm font-medium text-primary">
-                            💡 {currentAnalysis.contextPatterns.recommendation}
-                          </p>
+                          {selectedSavedAnalysis ? (
+                            <div className="text-sm font-medium text-primary flex items-start gap-1">
+                              <span>💡</span>
+                              <AnnotatableAnalysisText
+                                content={currentAnalysis.contextPatterns.recommendation}
+                                fieldName="contextPatterns-recommendation"
+                                analysisId={selectedSavedAnalysis.id}
+                                annotations={getAnnotationsForField('contextPatterns-recommendation')}
+                                onCreateAnnotation={createAnalysisAnnotation}
+                                onUpdateAnnotation={updateAnalysisAnnotation}
+                                onDeleteAnnotation={deleteAnalysisAnnotation}
+                                className=""
+                              />
+                            </div>
+                          ) : (
+                            <p className="text-sm font-medium text-primary">
+                              💡 {currentAnalysis.contextPatterns.recommendation}
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -522,14 +591,43 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                           {currentAnalysis.promptPatterns.findings.map((finding, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm">
                               <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                              {finding}
+                              {selectedSavedAnalysis ? (
+                                <AnnotatableAnalysisText
+                                  content={finding}
+                                  fieldName={`promptPatterns-finding-${i}`}
+                                  analysisId={selectedSavedAnalysis.id}
+                                  annotations={getAnnotationsForField(`promptPatterns-finding-${i}`)}
+                                  onCreateAnnotation={createAnalysisAnnotation}
+                                  onUpdateAnnotation={updateAnalysisAnnotation}
+                                  onDeleteAnnotation={deleteAnalysisAnnotation}
+                                  className=""
+                                />
+                              ) : (
+                                <span>{finding}</span>
+                              )}
                             </li>
                           ))}
                         </ul>
                         <div className="pt-3 border-t">
-                          <p className="text-sm font-medium text-primary">
-                            💡 {currentAnalysis.promptPatterns.recommendation}
-                          </p>
+                          {selectedSavedAnalysis ? (
+                            <div className="text-sm font-medium text-primary flex items-start gap-1">
+                              <span>💡</span>
+                              <AnnotatableAnalysisText
+                                content={currentAnalysis.promptPatterns.recommendation}
+                                fieldName="promptPatterns-recommendation"
+                                analysisId={selectedSavedAnalysis.id}
+                                annotations={getAnnotationsForField('promptPatterns-recommendation')}
+                                onCreateAnnotation={createAnalysisAnnotation}
+                                onUpdateAnnotation={updateAnalysisAnnotation}
+                                onDeleteAnnotation={deleteAnalysisAnnotation}
+                                className=""
+                              />
+                            </div>
+                          ) : (
+                            <p className="text-sm font-medium text-primary">
+                              💡 {currentAnalysis.promptPatterns.recommendation}
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -551,7 +649,20 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                               <Badge variant="secondary" className="mt-0.5 shrink-0 bg-green-500/10 text-green-600">
                                 ✓
                               </Badge>
-                              {factor}
+                              {selectedSavedAnalysis ? (
+                                <AnnotatableAnalysisText
+                                  content={factor}
+                                  fieldName={`successFactor-${i}`}
+                                  analysisId={selectedSavedAnalysis.id}
+                                  annotations={getAnnotationsForField(`successFactor-${i}`)}
+                                  onCreateAnnotation={createAnalysisAnnotation}
+                                  onUpdateAnnotation={updateAnalysisAnnotation}
+                                  onDeleteAnnotation={deleteAnalysisAnnotation}
+                                  className=""
+                                />
+                              ) : (
+                                <span>{factor}</span>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -572,7 +683,20 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                               <Badge variant="secondary" className="mt-0.5 shrink-0 bg-amber-500/10 text-amber-600">
                                 !
                               </Badge>
-                              {area}
+                              {selectedSavedAnalysis ? (
+                                <AnnotatableAnalysisText
+                                  content={area}
+                                  fieldName={`improvementArea-${i}`}
+                                  analysisId={selectedSavedAnalysis.id}
+                                  annotations={getAnnotationsForField(`improvementArea-${i}`)}
+                                  onCreateAnnotation={createAnalysisAnnotation}
+                                  onUpdateAnnotation={updateAnalysisAnnotation}
+                                  onDeleteAnnotation={deleteAnalysisAnnotation}
+                                  className=""
+                                />
+                              ) : (
+                                <span>{area}</span>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -593,14 +717,40 @@ export function ExperimentAnalyzer({ experiments }: ExperimentAnalyzerProps) {
                             <TrendingUp className="h-4 w-4" />
                             High-Rated Experiments
                           </h4>
-                          <p className="text-sm">{currentAnalysis.ratingCorrelations.highRatedCommonalities}</p>
+                          {selectedSavedAnalysis ? (
+                            <AnnotatableAnalysisText
+                              content={currentAnalysis.ratingCorrelations.highRatedCommonalities}
+                              fieldName="highRatedCommonalities"
+                              analysisId={selectedSavedAnalysis.id}
+                              annotations={getAnnotationsForField('highRatedCommonalities')}
+                              onCreateAnnotation={createAnalysisAnnotation}
+                              onUpdateAnnotation={updateAnalysisAnnotation}
+                              onDeleteAnnotation={deleteAnalysisAnnotation}
+                              className="text-sm"
+                            />
+                          ) : (
+                            <p className="text-sm">{currentAnalysis.ratingCorrelations.highRatedCommonalities}</p>
+                          )}
                         </div>
                         <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
                           <h4 className="font-medium text-amber-600 mb-2 flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4" />
                             Low-Rated Experiments
                           </h4>
-                          <p className="text-sm">{currentAnalysis.ratingCorrelations.lowRatedCommonalities}</p>
+                          {selectedSavedAnalysis ? (
+                            <AnnotatableAnalysisText
+                              content={currentAnalysis.ratingCorrelations.lowRatedCommonalities}
+                              fieldName="lowRatedCommonalities"
+                              analysisId={selectedSavedAnalysis.id}
+                              annotations={getAnnotationsForField('lowRatedCommonalities')}
+                              onCreateAnnotation={createAnalysisAnnotation}
+                              onUpdateAnnotation={updateAnalysisAnnotation}
+                              onDeleteAnnotation={deleteAnalysisAnnotation}
+                              className="text-sm"
+                            />
+                          ) : (
+                            <p className="text-sm">{currentAnalysis.ratingCorrelations.lowRatedCommonalities}</p>
+                          )}
                         </div>
                       </div>
                     </CardContent>
