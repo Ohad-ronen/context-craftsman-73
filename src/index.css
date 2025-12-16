@@ -162,28 +162,6 @@
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
   }
-
-  .text-gradient-shimmer {
-    @apply bg-clip-text text-transparent;
-    background: linear-gradient(
-      90deg, 
-      hsl(var(--primary)) 0%, 
-      hsl(200 80% 60%) 50%, 
-      hsl(var(--primary)) 100%
-    );
-    background-size: 200% 100%;
-    transition: background-position 0.5s ease;
-  }
-
-  .text-gradient-shimmer:hover {
-    animation: gradient-shimmer 1.5s ease infinite;
-  }
-
-  @keyframes gradient-shimmer {
-    0% { background-position: 100% 50%; }
-    50% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-  }
 }
 
 @layer utilities {
