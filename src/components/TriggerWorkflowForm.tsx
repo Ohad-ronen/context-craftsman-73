@@ -73,8 +73,9 @@ export function TriggerWorkflowForm() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="outline" title="Trigger Workflow">
-          <Plus className="h-4 w-4" />
+        <Button className="gap-2">
+          <Plus className="w-4 h-4" />
+          New Experiment
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">

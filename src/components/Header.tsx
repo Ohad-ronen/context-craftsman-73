@@ -1,9 +1,9 @@
 import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Layers, LayoutGrid, Table2, Brain } from 'lucide-react';
+import { Layers, LayoutGrid, Table2, Brain } from 'lucide-react';
+import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 
 interface HeaderProps {
-  onNewExperiment: () => void;
   experimentCount: number;
   viewMode: 'cards' | 'table';
   onViewModeChange: (mode: 'cards' | 'table') => void;
@@ -12,7 +12,7 @@ interface HeaderProps {
   onOpenAnalyzer?: () => void;
 }
 
-export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeChange, csvImport, googleSheetsImport, onOpenAnalyzer }: HeaderProps) {
+export function Header({ experimentCount, viewMode, onViewModeChange, csvImport, googleSheetsImport, onOpenAnalyzer }: HeaderProps) {
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -62,10 +62,7 @@ export function Header({ onNewExperiment, experimentCount, viewMode, onViewModeC
             
             {googleSheetsImport}
             
-            <Button onClick={onNewExperiment} className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Experiment
-            </Button>
+            <TriggerWorkflowForm />
           </div>
         </div>
       </div>

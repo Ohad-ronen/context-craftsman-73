@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { CSVImport } from '@/components/CSVImport';
 import { GoogleSheetsImport } from '@/components/GoogleSheetsImport';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
-import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
+
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -117,7 +117,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        onNewExperiment={handleNewExperiment} 
         experimentCount={experiments.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -135,10 +134,6 @@ const Index = () => {
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
           <>
-            <div className="flex justify-end mb-4">
-              <TriggerWorkflowForm />
-            </div>
-            
             {experiments.length === 0 ? (
               <EmptyState onNewExperiment={handleNewExperiment} />
             ) : viewMode === 'table' ? (
