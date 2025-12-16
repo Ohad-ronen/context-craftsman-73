@@ -98,8 +98,6 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
 
-      <SidebarSeparator />
-
       <SidebarContent>
         {/* Primary Action */}
         <SidebarGroup className="p-3" data-tour="trigger-workflow">
