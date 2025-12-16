@@ -19,6 +19,7 @@ export interface Experiment {
   output: string;
   rating: number | null;
   notes: string | null;
+  elo_rating: number;
   created_at: string;
   updated_at: string;
 }
