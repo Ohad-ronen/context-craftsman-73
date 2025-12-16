@@ -10,7 +10,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { Experiment } from '@/hooks/useExperiments';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X, Pencil, Check, User } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus, Circle, Reply, X, Pencil, Check, User, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatInputWithMentions, parseMentions, extractMentionedUserIds } from './ChatInputWithMentions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -95,7 +95,17 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter(msg => 
+        msg.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.profile?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.profile?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : messages;
 
   const handleReaction = (messageId: string, emoji: string) => {
     if (!user) return;
@@ -215,7 +225,37 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
               <h2 className="font-semibold">Team Chat</h2>
               <p className="text-xs text-muted-foreground">Use # to link experiments</p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={cn("h-8 w-8", isSearchOpen && "bg-primary/10")}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
+          
+          {/* Search Input */}
+          {isSearchOpen && (
+            <div className="mt-3 relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search messages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 pl-8 pr-8 text-sm"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                </button>
+              )}
+            </div>
+          )}
           
           {/* Online Users */}
           {onlineUsers.length > 0 && (
@@ -271,9 +311,15 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
               <p className="text-sm text-muted-foreground">No messages yet</p>
               <p className="text-xs text-muted-foreground mt-1">Start the conversation!</p>
             </div>
+          ) : filteredMessages.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">No messages found</p>
+              <p className="text-xs text-muted-foreground mt-1">Try a different search term</p>
+            </div>
           ) : (
             <div className="space-y-4">
-              {messages.map((msg) => {
+              {filteredMessages.map((msg) => {
                 const isOwnMessage = msg.user_id === user?.id;
                 const msgDisplayName = msg.profile?.display_name || msg.profile?.email?.split('@')[0] || 'Unknown';
                 const msgReactions = reactions[msg.id] || [];
