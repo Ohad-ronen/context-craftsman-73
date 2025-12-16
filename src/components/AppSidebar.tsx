@@ -5,7 +5,8 @@ import {
   LayoutGrid, 
   Table2, 
   GitCompareArrows, 
-  Brain, 
+  Brain,
+  Swords,
   Bot, 
   Keyboard,
   Layers,
@@ -46,7 +47,7 @@ import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { Tag as TagType } from '@/hooks/useTags';
 import { cn } from '@/lib/utils';
 
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle';
 
 interface AppSidebarProps {
   experimentCount: number;
@@ -68,6 +69,7 @@ const viewItems = [
   { id: 'table' as ViewMode, title: 'Table', icon: Table2 },
   { id: 'compare' as ViewMode, title: 'Compare', icon: GitCompareArrows },
   { id: 'insights' as ViewMode, title: 'AI Insights', icon: Brain },
+  { id: 'battle' as ViewMode, title: 'Output Battle', icon: Swords },
 ];
 
 function ThemeToggleButton() {
