@@ -2,13 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTeamChat } from '@/hooks/useTeamChat';
+import { useChatReactions, MessageReaction } from '@/hooks/useChatReactions';
 import { useAuth } from '@/hooks/useAuth';
 import { Experiment } from '@/hooks/useExperiments';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical } from 'lucide-react';
+import { MessageSquare, Send, ChevronLeft, ChevronRight, Trash2, Users, FlaskConical, SmilePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatInputWithMentions, parseExperimentMentions } from './ChatInputWithMentions';
+
+const EMOJI_OPTIONS = ['👍', '❤️', '😂', '🎉', '🔥', '👀', '💯', '🚀'];
 
 interface TeamChatPanelProps {
   isOpen: boolean;
@@ -58,9 +62,15 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
   const { user } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
   const { messages, isLoading, sendMessage, deleteMessage, typingUsers, setTyping } = useTeamChat(user?.id, displayName);
+  const { reactions, toggleReaction } = useChatReactions();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleReaction = (messageId: string, emoji: string) => {
+    if (!user) return;
+    toggleReaction(messageId, emoji, user.id);
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -148,7 +158,8 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
             <div className="space-y-4">
               {messages.map((msg) => {
                 const isOwnMessage = msg.user_id === user?.id;
-                const displayName = msg.profile?.display_name || msg.profile?.email?.split('@')[0] || 'Unknown';
+                const msgDisplayName = msg.profile?.display_name || msg.profile?.email?.split('@')[0] || 'Unknown';
+                const msgReactions = reactions[msg.id] || [];
                 
                 return (
                   <div
@@ -167,7 +178,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                     <div className={cn("flex-1 min-w-0", isOwnMessage && "text-right")}>
                       <div className="flex items-center gap-2 mb-1">
                         {!isOwnMessage && (
-                          <span className="text-xs font-medium truncate">{displayName}</span>
+                          <span className="text-xs font-medium truncate">{msgDisplayName}</span>
                         )}
                         <span className="text-[10px] text-muted-foreground">
                           {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
@@ -194,6 +205,53 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
                           isOwnMessage={isOwnMessage}
                           onViewExperiment={onViewExperiment}
                         />
+                      </div>
+                      
+                      {/* Reactions row */}
+                      <div className={cn("flex items-center gap-1 mt-1 flex-wrap", isOwnMessage && "justify-end")}>
+                        {msgReactions.map((r) => {
+                          const hasReacted = r.users.some(u => u.userId === user?.id);
+                          return (
+                            <button
+                              key={r.emoji}
+                              onClick={() => handleReaction(msg.id, r.emoji)}
+                              title={r.users.map(u => u.displayName).join(', ')}
+                              className={cn(
+                                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors",
+                                hasReacted 
+                                  ? "bg-primary/20 border border-primary/50" 
+                                  : "bg-muted hover:bg-muted/80"
+                              )}
+                            >
+                              <span>{r.emoji}</span>
+                              <span className="text-muted-foreground">{r.users.length}</span>
+                            </button>
+                          );
+                        })}
+                        
+                        {/* Add reaction button */}
+                        {user && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-all">
+                                <SmilePlus className="h-3.5 w-3.5 text-muted-foreground" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-2" side="top" align="start">
+                              <div className="flex gap-1">
+                                {EMOJI_OPTIONS.map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => handleReaction(msg.id, emoji)}
+                                    className="p-1.5 hover:bg-muted rounded transition-colors text-base"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
                       </div>
                     </div>
                   </div>
