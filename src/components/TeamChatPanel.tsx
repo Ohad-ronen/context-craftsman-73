@@ -39,7 +39,7 @@ function MessageContent({
   const parts = parseMentions(message);
   
   return (
-    <span>
+    <span className="break-words" style={{ overflowWrap: 'anywhere' }}>
       {parts.map((part, index) => {
         if (part.type === 'experiment' && part.id) {
           return (
@@ -47,14 +47,17 @@ function MessageContent({
               key={index}
               onClick={() => onViewExperiment?.(part.id!)}
               className={cn(
-                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors",
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors max-w-full min-w-0 whitespace-normal text-left",
                 isOwnMessage 
                   ? "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
                   : "bg-primary/10 hover:bg-primary/20 text-primary"
               )}
+              style={{ overflowWrap: 'anywhere' }}
             >
-              <FlaskConical className="h-3 w-3" />
-              {part.content}
+              <FlaskConical className="h-3 w-3 shrink-0" />
+              <span className="min-w-0 break-words" style={{ overflowWrap: 'anywhere' }}>
+                {part.content}
+              </span>
             </button>
           );
         }
@@ -64,16 +67,19 @@ function MessageContent({
             <span
               key={index}
               className={cn(
-                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium",
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-full min-w-0 whitespace-normal",
                 isOwnMessage 
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : isMentionedUser
                     ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
                     : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
               )}
+              style={{ overflowWrap: 'anywhere' }}
             >
-              <User className="h-3 w-3" />
-              {part.content}
+              <User className="h-3 w-3 shrink-0" />
+              <span className="min-w-0 break-words" style={{ overflowWrap: 'anywhere' }}>
+                {part.content}
+              </span>
             </span>
           );
         }
@@ -211,7 +217,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
       {/* Chat Panel */}
       <div
         className={cn(
-          "fixed right-0 top-0 h-full w-80 bg-background border-l border-border/50 z-40 transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed right-0 top-0 h-full w-80 bg-background border-l border-border/50 z-40 transition-transform duration-300 ease-in-out flex flex-col overflow-x-hidden",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -300,7 +306,7 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 p-4 overflow-x-hidden" ref={scrollRef}>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
