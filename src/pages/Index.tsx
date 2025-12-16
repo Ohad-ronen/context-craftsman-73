@@ -9,6 +9,7 @@ import { ExperimentDetail } from '@/components/ExperimentDetail';
 import { ExperimentsTable } from '@/components/ExperimentsTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ExperimentAnalyzer } from '@/components/ExperimentAnalyzer';
+import { BulkAIEvaluation } from '@/components/BulkAIEvaluation';
 import { Dashboard } from '@/components/Dashboard';
 import { ABComparison } from '@/components/ABComparison';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
@@ -41,6 +42,7 @@ const Index = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analyzerOpen, setAnalyzerOpen] = useState(false);
+  const [bulkEvalOpen, setBulkEvalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
@@ -54,6 +56,11 @@ const Index = () => {
       return selectedTagIds.some(tagId => expTags.some(t => t.id === tagId));
     });
   }, [experiments, selectedTagIds, getTagsForExperiment]);
+
+  // Count unrated experiments with output
+  const unratedCount = useMemo(() => {
+    return experiments.filter(exp => exp.rating === null && exp.output && exp.output.trim().length > 0).length;
+  }, [experiments]);
 
   const handleToggleTag = (tagId: string) => {
     setSelectedTagIds(prev => 
@@ -129,6 +136,7 @@ const Index = () => {
     { key: 'Escape', handler: () => { 
       if (shortcutsOpen) setShortcutsOpen(false);
       else if (analyzerOpen) setAnalyzerOpen(false);
+      else if (bulkEvalOpen) setBulkEvalOpen(false);
       else if (view !== 'list') handleBack();
       else setSelectedTagIds([]);
     }, description: 'Close dialog / Go back / Clear filters', category: 'General' },
@@ -137,8 +145,9 @@ const Index = () => {
     { key: 'g', handler: () => { setViewMode('cards'); setView('list'); }, description: 'Cards (grid) view', category: 'Navigation' },
     { key: 'c', handler: () => { setViewMode('compare'); setView('list'); }, description: 'Compare view', category: 'Navigation' },
     { key: 'a', handler: () => setAnalyzerOpen(true), description: 'Open AI analyzer', category: 'Actions' },
+    { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
-  ], [view, shortcutsOpen, analyzerOpen]);
+  ], [view, shortcutsOpen, analyzerOpen, bulkEvalOpen]);
 
   useKeyboardShortcuts(shortcuts, !deleteDialogOpen);
 
@@ -186,6 +195,8 @@ const Index = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenAnalyzer={() => setAnalyzerOpen(true)}
+        onOpenBulkEval={() => setBulkEvalOpen(true)}
+        unratedCount={unratedCount}
         onOpenShortcuts={() => setShortcutsOpen(true)}
         tags={tags}
         selectedTagIds={selectedTagIds}
@@ -198,6 +209,13 @@ const Index = () => {
         isOpen={analyzerOpen}
         onClose={() => setAnalyzerOpen(false)}
       />
+
+      <BulkAIEvaluation
+        isOpen={bulkEvalOpen}
+        onClose={() => setBulkEvalOpen(false)}
+        experiments={experiments}
+        updateExperiment={updateExperiment}
+      />
       
       <main className="container mx-auto px-6 py-8">
         {view === 'list' && (
@@ -205,7 +223,7 @@ const Index = () => {
             {viewMode === 'dashboard' ? (
               <Dashboard experiments={filteredExperiments} />
             ) : viewMode === 'compare' ? (
-              <ABComparison 
+              <ABComparison
                 experiments={filteredExperiments} 
                 onBack={() => setViewMode('table')} 
               />

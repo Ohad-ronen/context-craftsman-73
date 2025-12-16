@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows, Keyboard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Layers, LayoutGrid, Table2, Brain, BarChart3, GitCompareArrows, Keyboard, Bot } from 'lucide-react';
 import { TriggerWorkflowForm } from '@/components/TriggerWorkflowForm';
 import { TagFilter } from '@/components/TagFilter';
 import { Tag } from '@/hooks/useTags';
@@ -11,6 +12,8 @@ interface HeaderProps {
   onViewModeChange: (mode: 'cards' | 'table' | 'dashboard' | 'compare') => void;
   onOpenAnalyzer?: () => void;
   onOpenShortcuts?: () => void;
+  onOpenBulkEval?: () => void;
+  unratedCount?: number;
   tags?: Tag[];
   selectedTagIds?: string[];
   onToggleTag?: (tagId: string) => void;
@@ -23,6 +26,8 @@ export function Header({
   onViewModeChange, 
   onOpenAnalyzer,
   onOpenShortcuts,
+  onOpenBulkEval,
+  unratedCount = 0,
   tags = [],
   selectedTagIds = [],
   onToggleTag,
@@ -112,6 +117,18 @@ export function Header({
               />
             )}
             
+            {onOpenBulkEval && (
+              <Button variant="outline" onClick={onOpenBulkEval} className="gap-2">
+                <Bot className="w-4 h-4" />
+                <span className="hidden sm:inline">Bulk Eval</span>
+                {unratedCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {unratedCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
+
             {onOpenAnalyzer && (
               <Button variant="outline" onClick={onOpenAnalyzer} className="gap-2">
                 <Brain className="w-4 h-4" />
