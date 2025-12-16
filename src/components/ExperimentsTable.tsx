@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter, X, Tags } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter, X, Tags, Layout } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -38,6 +38,7 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [goalFilter, setGoalFilter] = useState<string>('all');
+  const [boardFilter, setBoardFilter] = useState<string>('all');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -53,6 +54,17 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
       }
     });
     return Array.from(goals).sort();
+  }, [experiments]);
+
+  // Get unique board names from experiments
+  const uniqueBoards = useMemo(() => {
+    const boards = new Set<string>();
+    experiments.forEach(exp => {
+      if (exp.board_name && exp.board_name.trim()) {
+        boards.add(exp.board_name);
+      }
+    });
+    return Array.from(boards).sort();
   }, [experiments]);
 
   // Map truncated goals back to full goals for filtering
@@ -88,10 +100,11 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     setSearchQuery('');
     setRatingFilter('all');
     setGoalFilter('all');
+    setBoardFilter('all');
     setSelectedTagIds([]);
   };
 
-  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || selectedTagIds.length > 0;
+  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || selectedTagIds.length > 0;
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -134,6 +147,11 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
       result = result.filter(exp => exp.goal === fullGoal);
     }
 
+    // Apply board filter
+    if (boardFilter !== 'all') {
+      result = result.filter(exp => exp.board_name === boardFilter);
+    }
+
     // Apply tag filter
     if (selectedTagIds.length > 0 && getTagsForExperiment) {
       result = result.filter(exp => {
@@ -170,7 +188,7 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     });
 
     return result;
-  }, [experiments, searchQuery, ratingFilter, goalFilter, selectedTagIds, sortField, sortDirection, goalMap, getTagsForExperiment]);
+  }, [experiments, searchQuery, ratingFilter, goalFilter, boardFilter, selectedTagIds, sortField, sortDirection, goalMap, getTagsForExperiment]);
 
   const truncateText = (text: string, maxLength: number = 50) => {
     if (!text) return '';
@@ -221,6 +239,23 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
               {uniqueGoals.map(goal => (
                 <SelectItem key={goal} value={goal}>
                   {goal}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {uniqueBoards.length > 0 && (
+          <Select value={boardFilter} onValueChange={setBoardFilter}>
+            <SelectTrigger className="w-[160px]">
+              <Layout className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Board" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Boards</SelectItem>
+              {uniqueBoards.map(board => (
+                <SelectItem key={board} value={board}>
+                  {board.length > 20 ? board.substring(0, 20) + '...' : board}
                 </SelectItem>
               ))}
             </SelectContent>
