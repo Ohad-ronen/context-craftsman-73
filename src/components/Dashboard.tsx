@@ -29,12 +29,16 @@ export function Dashboard({ experiments }: DashboardProps) {
           value={summaryStats.totalExperiments}
           subtitle={`${summaryStats.experimentsThisWeek} this week`}
           icon={<FlaskConical className="h-5 w-5" />}
+          delay={0}
+          className="animate-fade-in"
         />
         <StatsCard
           title="Average Rating"
           value={summaryStats.averageRating > 0 ? `${summaryStats.averageRating}★` : '—'}
           subtitle={`${summaryStats.ratedExperiments} rated`}
           icon={<Star className="h-5 w-5" />}
+          delay={100}
+          className="animate-fade-in"
         />
         <StatsCard
           title="Success Rate"
@@ -42,21 +46,33 @@ export function Dashboard({ experiments }: DashboardProps) {
           subtitle="Rating ≥ 4 stars"
           icon={<CheckCircle2 className="h-5 w-5" />}
           trend={summaryStats.successRate >= 70 ? 'up' : summaryStats.successRate >= 50 ? 'neutral' : 'down'}
+          delay={200}
+          className="animate-fade-in"
         />
         <StatsCard
           title="Unrated"
           value={summaryStats.unratedExperiments}
           subtitle="Awaiting evaluation"
           icon={<TrendingUp className="h-5 w-5" />}
+          delay={300}
+          className="animate-fade-in"
         />
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RatingDistributionChart data={ratingDistribution} />
-        <ExperimentsTimelineChart data={experimentsTimeline} />
-        <GoalPerformanceChart data={goalPerformance} />
-        <RatingTrendChart data={ratingTrend} />
+        <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <RatingDistributionChart data={ratingDistribution} />
+        </div>
+        <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <ExperimentsTimelineChart data={experimentsTimeline} />
+        </div>
+        <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+          <GoalPerformanceChart data={goalPerformance} />
+        </div>
+        <div className="animate-fade-in" style={{ animationDelay: '500ms' }}>
+          <RatingTrendChart data={ratingTrend} />
+        </div>
       </div>
     </div>
   );
