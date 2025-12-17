@@ -23,12 +23,13 @@ interface ExperimentDetailProps {
   onCreateTag?: (name: string, color: string) => Promise<Tag | null>;
 }
 
-const sections = [
+const sections: { key: string; label: string; icon: typeof Target; color: string; bgColor: string; borderColor: string; isBoolean?: boolean }[] = [
   { key: 'goal', label: 'The Goal', icon: Target, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
   { key: 'mission', label: 'The Mission', icon: Compass, color: 'text-step-input', bgColor: 'bg-step-input/10', borderColor: 'border-l-step-input' },
   { key: 'example', label: 'The Example', icon: BookOpen, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
   { key: 'desired', label: 'Desired', icon: Sparkles, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
   { key: 'rules', label: 'Rules', icon: ScrollText, color: 'text-step-context', bgColor: 'bg-step-context/10', borderColor: 'border-l-step-context' },
+  { key: 'use_websearch', label: 'Web Search', icon: Globe, color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-l-blue-500', isBoolean: true },
   { key: 'board_name', label: 'Board Name', icon: Layout, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
   { key: 'board_full_context', label: 'Board Full Context', icon: Database, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
   { key: 'board_pulled_context', label: 'Board Pulled Context', icon: Database, color: 'text-step-prompt', bgColor: 'bg-step-prompt/10', borderColor: 'border-l-step-prompt' },
@@ -151,12 +152,14 @@ export function ExperimentDetail({
       <div className="space-y-4">
         {sections.map((section, index) => {
           const Icon = section.icon;
-          const content = experiment[section.key as keyof Experiment] as string;
+          const rawContent = experiment[section.key as keyof Experiment];
+          const content = section.isBoolean ? String(rawContent) : rawContent as string;
           
-          if (!content) return null; // Skip empty sections
+          // Skip empty string sections but always show boolean sections
+          if (!section.isBoolean && !content) return null;
 
-          const fieldAnnotations = getAnnotationsForField(section.key);
-          const contentIsJson = isJson(content);
+          const fieldAnnotations = section.isBoolean ? [] : getAnnotationsForField(section.key);
+          const contentIsJson = !section.isBoolean && isJson(content);
           
           return (
             <div key={section.key} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
@@ -175,7 +178,15 @@ export function ExperimentDetail({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {contentIsJson ? (
+                  {section.isBoolean ? (
+                    <div className={cn(
+                      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
+                      rawContent ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground"
+                    )}>
+                      <Globe className="w-4 h-4" />
+                      {rawContent ? "Enabled" : "Disabled"}
+                    </div>
+                  ) : contentIsJson ? (
                     <AnnotatableJson
                       content={content}
                       fieldName={section.key}
