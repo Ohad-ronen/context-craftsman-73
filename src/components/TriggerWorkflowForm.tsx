@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Play, Loader2, Plus } from "lucide-react";
+import { Play, Loader2, Plus, Globe } from "lucide-react";
 
 const N8N_WEBHOOK_URL = "https://boardsai.app.n8n.cloud/webhook/575b5dc9-dbd9-4113-81fd-8fea8342f97d";
 
@@ -26,6 +27,7 @@ interface WorkflowFormData {
   mission: string;
   example: string;
   rules: string;
+  useWebsearch: boolean;
 }
 
 interface TriggerWorkflowFormProps {
@@ -44,6 +46,7 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
     mission: "",
     example: "",
     rules: "",
+    useWebsearch: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,6 +65,7 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
         mission: formData.mission,
         example: formData.example,
         rules: formData.rules,
+        use_websearch: formData.useWebsearch.toString(),
       });
 
       const response = await fetch(`${N8N_WEBHOOK_URL}?${params.toString()}`, {
@@ -70,7 +74,7 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
 
       if (response.ok) {
         toast.success("Workflow triggered successfully! Agents are now running.");
-        setFormData({ goal: "", mission: "", example: "", rules: "" });
+        setFormData({ goal: "", mission: "", example: "", rules: "", useWebsearch: false });
         setIsOpen(false);
       } else {
         toast.error("Failed to trigger workflow");
@@ -162,6 +166,25 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
               value={formData.rules}
               onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
               rows={3}
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="use-websearch" className="text-sm font-medium">
+                  Enable Web Search
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Allow agents to search the web for additional context
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="use-websearch"
+              checked={formData.useWebsearch}
+              onCheckedChange={(checked) => setFormData({ ...formData, useWebsearch: checked })}
             />
           </div>
 
