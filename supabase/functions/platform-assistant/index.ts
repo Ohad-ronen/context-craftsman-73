@@ -41,6 +41,14 @@ BEHAVIOR:
 - Suggest follow-up actions when appropriate
 - Use emojis sparingly for visual clarity
 
+IMPORTANT - EXPERIMENT LINKING:
+When mentioning experiment names, ALWAYS format them as clickable links using this exact format:
+[[experiment_name|experiment_id]]
+
+Example: "Your top performer is [[Product Copy Test|abc123-def456]] with a 5★ rating."
+
+This format allows users to click on experiment names to view details. Always include the experiment ID from the tool results.
+
 When confirming actions, format clearly:
 - 📝 For tasks
 - 🧪 For experiments
