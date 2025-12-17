@@ -9,6 +9,8 @@ export interface SummaryStats {
   averageRating: number;
   successRate: number; // % with rating >= 4
   experimentsThisWeek: number;
+  webSearchPercentage: number;
+  webSearchCount: number;
 }
 
 export interface RatingDistribution {
@@ -44,6 +46,11 @@ export function useDashboardStats(experiments: Experiment[]) {
     
     const oneWeekAgo = subDays(new Date(), 7);
     const thisWeek = experiments.filter(e => parseISO(e.created_at) >= oneWeekAgo);
+    
+    const webSearchEnabled = experiments.filter(e => e.use_websearch === true);
+    const webSearchPct = experiments.length > 0 
+      ? Math.round((webSearchEnabled.length / experiments.length) * 100) 
+      : 0;
 
     return {
       totalExperiments: experiments.length,
@@ -52,6 +59,8 @@ export function useDashboardStats(experiments: Experiment[]) {
       averageRating: Math.round(avgRating * 100) / 100,
       successRate: rated.length > 0 ? Math.round((successful.length / rated.length) * 100) : 0,
       experimentsThisWeek: thisWeek.length,
+      webSearchPercentage: webSearchPct,
+      webSearchCount: webSearchEnabled.length,
     };
   }, [experiments]);
 

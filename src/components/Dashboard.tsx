@@ -5,7 +5,7 @@ import { RatingDistributionChart } from '@/components/charts/RatingDistributionC
 import { ExperimentsTimelineChart } from '@/components/charts/ExperimentsTimelineChart';
 import { GoalPerformanceChart } from '@/components/charts/GoalPerformanceChart';
 import { RatingTrendChart } from '@/components/charts/RatingTrendChart';
-import { FlaskConical, Star, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { FlaskConical, Star, TrendingUp, CheckCircle2, Globe } from 'lucide-react';
 
 interface DashboardProps {
   experiments: Experiment[];
@@ -23,7 +23,7 @@ export function Dashboard({ experiments }: DashboardProps) {
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatsCard
           title="Total Experiments"
           value={summaryStats.totalExperiments}
@@ -50,11 +50,19 @@ export function Dashboard({ experiments }: DashboardProps) {
           className="animate-fade-in"
         />
         <StatsCard
+          title="Web Search"
+          value={summaryStats.totalExperiments > 0 ? `${summaryStats.webSearchPercentage}%` : '—'}
+          subtitle={`${summaryStats.webSearchCount} experiments`}
+          icon={<Globe className="h-5 w-5" />}
+          delay={300}
+          className="animate-fade-in"
+        />
+        <StatsCard
           title="Unrated"
           value={summaryStats.unratedExperiments}
           subtitle="Awaiting evaluation"
           icon={<TrendingUp className="h-5 w-5" />}
-          delay={300}
+          delay={400}
           className="animate-fade-in"
         />
       </div>
