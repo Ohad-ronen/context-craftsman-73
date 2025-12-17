@@ -429,7 +429,7 @@ const Index = () => {
         />
 
         {/* AI Platform Assistant - Always visible floating UI */}
-        <PlatformAssistant context={assistantContext} />
+        <PlatformAssistant context={assistantContext} onExperimentClick={handleViewExperiment} />
       </div>
     </SidebarProvider>
   );

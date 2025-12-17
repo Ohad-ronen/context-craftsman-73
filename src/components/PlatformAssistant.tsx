@@ -9,6 +9,7 @@ import { AssistantMessage } from '@/components/AssistantMessage';
 
 interface PlatformAssistantProps {
   context: AssistantContext;
+  onExperimentClick?: (experimentId: string) => void;
 }
 
 const QUICK_ACTIONS = [
@@ -18,7 +19,7 @@ const QUICK_ACTIONS = [
   { label: "⏳ Unrated", message: "How many experiments need rating?" },
 ];
 
-export function PlatformAssistant({ context }: PlatformAssistantProps) {
+export function PlatformAssistant({ context, onExperimentClick }: PlatformAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
@@ -154,7 +155,11 @@ export function PlatformAssistant({ context }: PlatformAssistantProps) {
                 </div>
               ) : (
                 messages.map((message) => (
-                  <AssistantMessage key={message.id} message={message} />
+                  <AssistantMessage 
+                    key={message.id} 
+                    message={message} 
+                    onExperimentClick={onExperimentClick}
+                  />
                 ))
               )}
             </div>
