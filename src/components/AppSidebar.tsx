@@ -16,7 +16,8 @@ import {
   LogOut,
   ListTodo,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  FileText
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -50,7 +51,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates';
 
 interface AppSidebarProps {
   experimentCount: number;
@@ -225,6 +226,26 @@ export function AppSidebar({
                       {pendingTaskCount}
                     </Badge>
                   )}
+                </SidebarMenuButton>
+                </SidebarMenuItem>
+              <SidebarMenuItem className="relative">
+                {viewMode === 'templates' && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full animate-slide-in-left origin-left" />
+                )}
+                <SidebarMenuButton
+                  onClick={() => onViewModeChange('templates')}
+                  isActive={viewMode === 'templates'}
+                  tooltip="Templates"
+                  className={cn(
+                    "group transition-all duration-200 hover:-translate-y-0.5 active:scale-95",
+                    viewMode === 'templates' && 'bg-primary/10 text-primary animate-scale-in'
+                  )}
+                >
+                  <FileText className={cn(
+                    "w-4 h-4 transition-all duration-200 group-hover:scale-110",
+                    viewMode === 'templates' && "text-primary animate-bounce-in"
+                  )} />
+                  <span>Templates</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
