@@ -277,6 +277,45 @@ export type Database = {
           },
         ]
       }
+      experiment_templates: {
+        Row: {
+          created_at: string
+          example: string
+          goal: string
+          id: string
+          mission: string
+          name: string
+          rules: string
+          updated_at: string
+          use_websearch: boolean
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          example?: string
+          goal?: string
+          id?: string
+          mission?: string
+          name: string
+          rules?: string
+          updated_at?: string
+          use_websearch?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          example?: string
+          goal?: string
+          id?: string
+          mission?: string
+          name?: string
+          rules?: string
+          updated_at?: string
+          use_websearch?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       experiments: {
         Row: {
           agentic_prompt: string
