@@ -104,6 +104,9 @@ export const useExperimentTemplates = () => {
 
       if (error) throw error;
 
+      // Optimistically update local state
+      setTemplates(prev => [...prev, newTemplate as ExperimentTemplate].sort((a, b) => a.name.localeCompare(b.name)));
+
       toast({
         title: 'Template Saved',
         description: `"${data.name}" has been saved`,
