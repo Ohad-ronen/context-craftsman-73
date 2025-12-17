@@ -56,6 +56,7 @@ serve(async (req) => {
           : (experiment.output || ''),
         rating: experiment.rating || null,
         notes: experiment.notes || null,
+        use_websearch: experiment.use_websearch === true || experiment.use_websearch === 'true' || false,
       };
 
       console.log("Inserting experiment:", experimentData.name);

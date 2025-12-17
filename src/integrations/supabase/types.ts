@@ -299,6 +299,7 @@ export type Database = {
           search_context: string
           search_terms: string
           updated_at: string
+          use_websearch: boolean
         }
         Insert: {
           agentic_prompt?: string
@@ -321,6 +322,7 @@ export type Database = {
           search_context?: string
           search_terms?: string
           updated_at?: string
+          use_websearch?: boolean
         }
         Update: {
           agentic_prompt?: string
@@ -343,6 +345,7 @@ export type Database = {
           search_context?: string
           search_terms?: string
           updated_at?: string
+          use_websearch?: boolean
         }
         Relationships: [
           {
