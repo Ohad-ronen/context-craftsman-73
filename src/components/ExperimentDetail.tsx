@@ -4,7 +4,7 @@ import { useAnnotations } from '@/hooks/useAnnotations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
-import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags, Globe } from 'lucide-react';
 import { AIEvaluation } from './AIEvaluation';
 import { AnnotatableText, AnnotatableJson, AnnotationsSummary } from './annotations';
 import { cn } from '@/lib/utils';
@@ -93,6 +93,12 @@ export function ExperimentDetail({
                 <div className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
                   <span>{experiment.rating}/5</span>
+                </div>
+              )}
+              {experiment.use_websearch && (
+                <div className="flex items-center gap-1.5 text-blue-500">
+                  <Globe className="w-4 h-4" />
+                  <span>Web Search</span>
                 </div>
               )}
             </div>
