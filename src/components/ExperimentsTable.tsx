@@ -40,6 +40,7 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [goalFilter, setGoalFilter] = useState<string>('all');
   const [boardFilter, setBoardFilter] = useState<string>('all');
+  const [webSearchFilter, setWebSearchFilter] = useState<string>('all');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -102,10 +103,11 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     setRatingFilter('all');
     setGoalFilter('all');
     setBoardFilter('all');
+    setWebSearchFilter('all');
     setSelectedTagIds([]);
   };
 
-  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || selectedTagIds.length > 0;
+  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || webSearchFilter !== 'all' || selectedTagIds.length > 0;
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -153,6 +155,15 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
       result = result.filter(exp => exp.board_name === boardFilter);
     }
 
+    // Apply web search filter
+    if (webSearchFilter !== 'all') {
+      if (webSearchFilter === 'enabled') {
+        result = result.filter(exp => exp.use_websearch === true);
+      } else {
+        result = result.filter(exp => exp.use_websearch !== true);
+      }
+    }
+
     // Apply tag filter
     if (selectedTagIds.length > 0 && getTagsForExperiment) {
       result = result.filter(exp => {
@@ -189,7 +200,7 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
     });
 
     return result;
-  }, [experiments, searchQuery, ratingFilter, goalFilter, boardFilter, selectedTagIds, sortField, sortDirection, goalMap, getTagsForExperiment]);
+  }, [experiments, searchQuery, ratingFilter, goalFilter, boardFilter, webSearchFilter, selectedTagIds, sortField, sortDirection, goalMap, getTagsForExperiment]);
 
   const truncateText = (text: string, maxLength: number = 50) => {
     if (!text) return '';
@@ -262,6 +273,18 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
             </SelectContent>
           </Select>
         )}
+
+        <Select value={webSearchFilter} onValueChange={setWebSearchFilter}>
+          <SelectTrigger className="w-[150px]">
+            <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Web Search" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="enabled">Web Search</SelectItem>
+            <SelectItem value="disabled">No Web Search</SelectItem>
+          </SelectContent>
+        </Select>
 
         {availableTags.length > 0 && (
           <Popover>

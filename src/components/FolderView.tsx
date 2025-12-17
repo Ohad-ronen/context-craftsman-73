@@ -20,7 +20,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useDroppable } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
-import { FolderPlus, ArrowLeft, FolderOpen, FolderMinus, Search, Star, Filter, X, Tags, Layout } from 'lucide-react';
+import { FolderPlus, ArrowLeft, FolderOpen, FolderMinus, Search, Star, Filter, X, Tags, Layout, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TagBadge } from '@/components/TagBadge';
 import {
@@ -100,6 +100,7 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [goalFilter, setGoalFilter] = useState<string>('all');
   const [boardFilter, setBoardFilter] = useState<string>('all');
+  const [webSearchFilter, setWebSearchFilter] = useState<string>('all');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const currentFolder = folders.find(f => f.id === currentFolderId);
@@ -173,6 +174,14 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
       result = result.filter(exp => exp.board_name === boardFilter);
     }
 
+    if (webSearchFilter !== 'all') {
+      if (webSearchFilter === 'enabled') {
+        result = result.filter(exp => exp.use_websearch === true);
+      } else {
+        result = result.filter(exp => exp.use_websearch !== true);
+      }
+    }
+
     if (selectedTagIds.length > 0) {
       result = result.filter(exp => {
         const expTags = getTagsForExperiment(exp.id);
@@ -181,7 +190,7 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
     }
 
     return result;
-  }, [experimentsWithFolder, searchQuery, ratingFilter, goalFilter, boardFilter, selectedTagIds, goalMap, getTagsForExperiment]);
+  }, [experimentsWithFolder, searchQuery, ratingFilter, goalFilter, boardFilter, webSearchFilter, selectedTagIds, goalMap, getTagsForExperiment]);
 
   const unfiledExperiments = useMemo(() => 
     filteredExperiments.filter(exp => !exp.folder_id),
@@ -213,10 +222,11 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
     setRatingFilter('all');
     setGoalFilter('all');
     setBoardFilter('all');
+    setWebSearchFilter('all');
     setSelectedTagIds([]);
   };
 
-  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || selectedTagIds.length > 0;
+  const hasActiveFilters = searchQuery || ratingFilter !== 'all' || goalFilter !== 'all' || boardFilter !== 'all' || webSearchFilter !== 'all' || selectedTagIds.length > 0;
   const selectedTags = availableTags.filter(t => selectedTagIds.includes(t.id));
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -436,6 +446,18 @@ export function FolderView({ experiments, getTagsForExperiment, onViewExperiment
                 </SelectContent>
               </Select>
             )}
+
+            <Select value={webSearchFilter} onValueChange={setWebSearchFilter}>
+              <SelectTrigger className="w-[150px]">
+                <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Web Search" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="enabled">Web Search</SelectItem>
+                <SelectItem value="disabled">No Web Search</SelectItem>
+              </SelectContent>
+            </Select>
 
             {availableTags.length > 0 && (
               <Popover>
