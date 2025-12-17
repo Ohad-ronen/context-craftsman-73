@@ -10,6 +10,7 @@ import { AssistantMessage } from '@/components/AssistantMessage';
 interface PlatformAssistantProps {
   context: AssistantContext;
   onExperimentClick?: (experimentId: string) => void;
+  onTaskClick?: () => void;
 }
 
 const QUICK_ACTIONS = [
@@ -19,7 +20,7 @@ const QUICK_ACTIONS = [
   { label: "⏳ Unrated", message: "How many experiments need rating?" },
 ];
 
-export function PlatformAssistant({ context, onExperimentClick }: PlatformAssistantProps) {
+export function PlatformAssistant({ context, onExperimentClick, onTaskClick }: PlatformAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
@@ -159,6 +160,7 @@ export function PlatformAssistant({ context, onExperimentClick }: PlatformAssist
                     key={message.id} 
                     message={message} 
                     onExperimentClick={onExperimentClick}
+                    onTaskClick={onTaskClick}
                   />
                 ))
               )}
