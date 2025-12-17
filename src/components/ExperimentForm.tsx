@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Save, ArrowDown } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Save, ArrowDown, Globe } from 'lucide-react';
 
 interface ExperimentFormProps {
   initialData?: Partial<ExperimentFormData>;
@@ -31,11 +32,12 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
     output: initialData?.output || '',
     rating: initialData?.rating,
     notes: initialData?.notes || '',
+    use_websearch: initialData?.use_websearch ?? false,
   });
 
   const [activeStep, setActiveStep] = useState<number>(0);
 
-  const handleChange = (field: keyof ExperimentFormData, value: string | number) => {
+  const handleChange = (field: keyof ExperimentFormData, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -108,6 +110,31 @@ export function ExperimentForm({ initialData, onSubmit, onCancel, isEditing = fa
           );
         })}
       </div>
+
+      {/* Settings */}
+      <Card className="glass-card">
+        <CardContent className="pt-6 space-y-4">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <span className="p-1 rounded bg-blue-500/20">
+              <Globe className="w-4 h-4 text-blue-500" />
+            </span>
+            Settings
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="use_websearch">Web Search Enabled</Label>
+              <p className="text-sm text-muted-foreground">
+                This experiment used web search for context
+              </p>
+            </div>
+            <Switch
+              id="use_websearch"
+              checked={formData.use_websearch}
+              onCheckedChange={(checked) => handleChange('use_websearch', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Evaluation */}
       <Card className="glass-card">

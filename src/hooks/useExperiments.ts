@@ -42,6 +42,7 @@ export interface ExperimentFormData {
   output: string;
   rating?: number;
   notes?: string;
+  use_websearch?: boolean;
 }
 
 export function useExperiments() {
@@ -110,6 +111,7 @@ export function useExperiments() {
           output: data.output,
           rating: data.rating || null,
           notes: data.notes || null,
+          use_websearch: data.use_websearch ?? false,
         })
         .select()
         .single();
@@ -145,6 +147,7 @@ export function useExperiments() {
       if (data.output !== undefined) updateData.output = data.output;
       if (data.rating !== undefined) updateData.rating = data.rating || null;
       if (data.notes !== undefined) updateData.notes = data.notes || null;
+      if (data.use_websearch !== undefined) updateData.use_websearch = data.use_websearch;
 
       const { data: updated, error } = await supabase
         .from('experiments')
@@ -224,6 +227,7 @@ export function useExperiments() {
             output: exp.output,
             rating: exp.rating || null,
             notes: exp.notes || null,
+            use_websearch: exp.use_websearch ?? false,
           });
 
         if (error) {
