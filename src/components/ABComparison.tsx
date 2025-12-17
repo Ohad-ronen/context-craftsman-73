@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeftRight, Star, X } from 'lucide-react';
+import { ArrowLeftRight, Star, X, Globe, Check, X as XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ABComparisonProps {
@@ -16,7 +16,7 @@ interface ABComparisonProps {
 interface ComparisonField {
   key: keyof Experiment;
   label: string;
-  type: 'text' | 'rating' | 'multiline';
+  type: 'text' | 'rating' | 'multiline' | 'boolean';
 }
 
 const COMPARISON_FIELDS: ComparisonField[] = [
@@ -29,6 +29,7 @@ const COMPARISON_FIELDS: ComparisonField[] = [
   { key: 'board_pulled_context', label: 'Board Pulled Context', type: 'multiline' },
   { key: 'search_terms', label: 'Search Terms', type: 'text' },
   { key: 'search_context', label: 'Search Context', type: 'multiline' },
+  { key: 'use_websearch', label: 'Web Search', type: 'boolean' },
   { key: 'agentic_prompt', label: 'Agentic Prompt', type: 'multiline' },
   { key: 'output', label: 'Output', type: 'multiline' },
   { key: 'rating', label: 'Rating', type: 'rating' },
@@ -66,10 +67,32 @@ function RatingStars({ rating }: { rating: number | null | undefined }) {
 
 function FieldValue({ value, type, diffStatus }: { 
   value: string | number | boolean | null | undefined; 
-  type: 'text' | 'rating' | 'multiline';
+  type: 'text' | 'rating' | 'multiline' | 'boolean';
   diffStatus: 'same' | 'different' | 'only-a' | 'only-b';
 }) {
   const isEmpty = value === null || value === undefined || value === '';
+  
+  if (type === 'boolean') {
+    const isEnabled = value === true;
+    return (
+      <div className={cn(
+        "p-2 rounded-md border border-border/50 bg-muted/30 flex items-center gap-2",
+        diffStatus === 'different' && 'bg-amber-500/10 border-amber-500/30'
+      )}>
+        {isEnabled ? (
+          <>
+            <Globe className="w-4 h-4 text-blue-500" />
+            <span className="text-sm text-blue-500 font-medium">Enabled</span>
+          </>
+        ) : (
+          <>
+            <XIcon className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Disabled</span>
+          </>
+        )}
+      </div>
+    );
+  }
   
   if (type === 'rating') {
     return <RatingStars rating={value as number | null} />;
