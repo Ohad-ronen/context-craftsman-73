@@ -35,9 +35,9 @@ const COMPARISON_FIELDS: ComparisonField[] = [
   { key: 'notes', label: 'Notes', type: 'multiline' },
 ];
 
-function getDiffStatus(valA: string | number | null | undefined, valB: string | number | null | undefined): 'same' | 'different' | 'only-a' | 'only-b' {
-  const aEmpty = !valA || valA === '';
-  const bEmpty = !valB || valB === '';
+function getDiffStatus(valA: string | number | boolean | null | undefined, valB: string | number | boolean | null | undefined): 'same' | 'different' | 'only-a' | 'only-b' {
+  const aEmpty = valA === null || valA === undefined || valA === '';
+  const bEmpty = valB === null || valB === undefined || valB === '';
   
   if (aEmpty && bEmpty) return 'same';
   if (aEmpty && !bEmpty) return 'only-b';
@@ -65,11 +65,11 @@ function RatingStars({ rating }: { rating: number | null | undefined }) {
 }
 
 function FieldValue({ value, type, diffStatus }: { 
-  value: string | number | null | undefined; 
+  value: string | number | boolean | null | undefined; 
   type: 'text' | 'rating' | 'multiline';
   diffStatus: 'same' | 'different' | 'only-a' | 'only-b';
 }) {
-  const isEmpty = !value || value === '';
+  const isEmpty = value === null || value === undefined || value === '';
   
   if (type === 'rating') {
     return <RatingStars rating={value as number | null} />;

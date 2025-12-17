@@ -21,6 +21,7 @@ export interface Experiment {
   notes: string | null;
   elo_rating: number;
   folder_id: string | null;
+  use_websearch: boolean;
   created_at: string;
   updated_at: string;
 }

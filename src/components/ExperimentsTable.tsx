@@ -20,9 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter, X, Tags, Layout } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Eye, Star, Filter, X, Tags, Layout, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ExperimentsTableProps {
   experiments: Experiment[];
@@ -406,12 +407,24 @@ export function ExperimentsTable({ experiments, onViewExperiment, getTagsForExpe
                     onClick={() => onViewExperiment(experiment.id)}
                   >
                     <TableCell className="font-medium">
-                      <div>
-                        <div className="font-semibold">{experiment.name}</div>
-                        {experiment.goal && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {truncateText(experiment.goal, 40)}
-                          </div>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <div className="font-semibold">{experiment.name}</div>
+                          {experiment.goal && (
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {truncateText(experiment.goal, 40)}
+                            </div>
+                          )}
+                        </div>
+                        {experiment.use_websearch && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 shrink-0">
+                                <Globe className="w-3 h-3" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>Web search enabled</TooltipContent>
+                          </Tooltip>
                         )}
                       </div>
                     </TableCell>

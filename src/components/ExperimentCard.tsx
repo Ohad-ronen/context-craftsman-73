@@ -2,9 +2,10 @@ import { Experiment } from '@/hooks/useExperiments';
 import { Tag } from '@/hooks/useTags';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagBadge } from '@/components/TagBadge';
-import { Star, Clock, FileText } from 'lucide-react';
+import { Star, Clock, FileText, Globe } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ExperimentCardProps {
   experiment: Experiment;
@@ -60,6 +61,16 @@ export function ExperimentCard({ experiment, tags = [], onClick }: ExperimentCar
               <Star className="w-4 h-4 text-step-prompt fill-step-prompt transition-all duration-300 group-hover:rotate-12 group-hover:drop-shadow-[0_0_8px_hsl(var(--prompt-step))]" />
               <span className="font-medium">{experiment.rating}/5</span>
             </div>
+          )}
+          {experiment.use_websearch && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 transition-transform duration-300 group-hover:scale-110">
+                  <Globe className="w-3.5 h-3.5" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>Web search enabled</TooltipContent>
+            </Tooltip>
           )}
           <div className="flex items-center gap-1.5 ml-auto">
             <FileText className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
