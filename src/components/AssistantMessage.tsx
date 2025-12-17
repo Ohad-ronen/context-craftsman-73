@@ -6,9 +6,10 @@ import type { Message } from '@/hooks/usePlatformAssistant';
 interface AssistantMessageProps {
   message: Message;
   onExperimentClick?: (experimentId: string) => void;
+  onTaskClick?: (taskId: string) => void;
 }
 
-export function AssistantMessage({ message, onExperimentClick }: AssistantMessageProps) {
+export function AssistantMessage({ message, onExperimentClick, onTaskClick }: AssistantMessageProps) {
   const isAssistant = message.role === 'assistant';
 
   if (message.isLoading) {
@@ -45,20 +46,24 @@ export function AssistantMessage({ message, onExperimentClick }: AssistantMessag
           {isAssistant ? 'Ask Boards Assistant' : 'You'}
         </div>
         <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-          {formatContent(message.content, onExperimentClick)}
+          {formatContent(message.content, onExperimentClick, onTaskClick)}
         </div>
       </div>
     </div>
   );
 }
 
-function formatContent(content: string, onExperimentClick?: (experimentId: string) => void): React.ReactNode {
-  // Parse experiment links [[name|id]] and bold text **text**
+function formatContent(
+  content: string, 
+  onExperimentClick?: (experimentId: string) => void,
+  onTaskClick?: (taskId: string) => void
+): React.ReactNode {
+  // Parse experiment links [[name|id]], task links {{name|id}}, and bold text **text**
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   
-  // Combined regex for experiment links and bold text
-  const combinedRegex = /(\[\[([^\]|]+)\|([^\]]+)\]\])|(\*\*[^*]+\*\*)/g;
+  // Combined regex for experiment links, task links, and bold text
+  const combinedRegex = /(\[\[([^\]|]+)\|([^\]]+)\]\])|(\{\{([^}|]+)\|([^}]+)\}\})|(\*\*[^*]+\*\*)/g;
   let match;
   
   while ((match = combinedRegex.exec(content)) !== null) {
@@ -82,8 +87,22 @@ function formatContent(content: string, onExperimentClick?: (experimentId: strin
         </button>
       );
     } else if (match[4]) {
+      // Task link: {{name|id}}
+      const taskName = match[5];
+      const taskId = match[6];
+      
+      parts.push(
+        <button
+          key={`task-${match.index}`}
+          onClick={() => onTaskClick?.(taskId)}
+          className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+        >
+          {taskName}
+        </button>
+      );
+    } else if (match[7]) {
       // Bold text: **text**
-      const boldText = match[4];
+      const boldText = match[7];
       parts.push(<strong key={`bold-${match.index}`}>{boldText.slice(2, -2)}</strong>);
     }
     
