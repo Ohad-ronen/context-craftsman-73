@@ -27,6 +27,7 @@ import { FolderView } from '@/components/FolderView';
 import { TaskManager } from '@/components/TaskManager';
 import { TaskDialog } from '@/components/TaskDialog';
 import { TaskFormData } from '@/hooks/useTasks';
+import { TemplatesManager } from '@/components/TemplatesManager';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -41,7 +42,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
@@ -158,6 +159,7 @@ const Index = () => {
     { key: 'a', handler: () => { setViewMode('insights'); setView('list'); }, description: 'AI Insights view', category: 'Navigation' },
     { key: 'o', handler: () => { setViewMode('battle'); setView('list'); }, description: 'Output Battle', category: 'Navigation' },
     { key: 'x', handler: () => { setViewMode('tasks'); setView('list'); }, description: 'Task Manager', category: 'Navigation' },
+    { key: 'p', handler: () => { setViewMode('templates'); setView('list'); }, description: 'Templates', category: 'Navigation' },
     { key: 'b', handler: () => setBulkEvalOpen(true), description: 'Bulk AI evaluation', category: 'Actions' },
     { key: 'm', handler: () => setChatOpen(prev => !prev), description: 'Toggle team chat', category: 'Actions' },
     { key: 'k', ctrl: true, handler: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus(), description: 'Focus search', category: 'Actions' },
@@ -256,7 +258,9 @@ const Index = () => {
           <main className="flex-1 p-6 overflow-auto">
             {view === 'list' && (
               <>
-                {viewMode === 'tasks' ? (
+                {viewMode === 'templates' ? (
+                  <TemplatesManager />
+                ) : viewMode === 'tasks' ? (
                   <TaskManager onViewExperiment={handleViewExperiment} />
                 ) : viewMode === 'battle' ? (
                   <OutputBattle 
