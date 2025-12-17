@@ -28,7 +28,7 @@ import { TaskManager } from '@/components/TaskManager';
 import { TaskDialog } from '@/components/TaskDialog';
 import { TaskFormData } from '@/hooks/useTasks';
 import { TemplatesManager } from '@/components/TemplatesManager';
-
+import { PlatformAssistant } from '@/components/PlatformAssistant';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -67,6 +67,22 @@ const Index = () => {
   const unratedCount = useMemo(() => {
     return experiments.filter(exp => exp.rating === null && exp.output && exp.output.trim().length > 0).length;
   }, [experiments]);
+
+  // Calculate average rating for assistant context
+  const averageRating = useMemo(() => {
+    const rated = experiments.filter(exp => exp.rating !== null);
+    if (rated.length === 0) return null;
+    return rated.reduce((sum, exp) => sum + (exp.rating || 0), 0) / rated.length;
+  }, [experiments]);
+
+  // Assistant context
+  const assistantContext = useMemo(() => ({
+    totalExperiments: experiments.length,
+    averageRating,
+    unratedCount,
+    pendingTaskCount,
+    currentView: view === 'list' ? viewMode : view,
+  }), [experiments.length, averageRating, unratedCount, pendingTaskCount, view, viewMode]);
 
   const handleNewExperiment = () => {
     setSelectedId(null);
@@ -411,6 +427,9 @@ const Index = () => {
           } : null}
           experiments={experiments}
         />
+
+        {/* AI Platform Assistant - Always visible floating UI */}
+        <PlatformAssistant context={assistantContext} />
       </div>
     </SidebarProvider>
   );
