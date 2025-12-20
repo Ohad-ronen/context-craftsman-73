@@ -29,6 +29,7 @@ import { Play, Loader2, Plus, Globe, Save, FileText, Trash2 } from "lucide-react
 import { useExperimentTemplates, ExperimentTemplate } from "@/hooks/useExperimentTemplates";
 import { SaveTemplateDialog } from "@/components/SaveTemplateDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const N8N_WEBHOOK_URL = "https://boardsai.app.n8n.cloud/webhook/575b5dc9-dbd9-4113-81fd-8fea8342f97d";
 
@@ -149,7 +150,37 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
     setIsSubmitting(true);
 
     try {
+      // Generate a tracking UUID for this request
+      const requestId = crypto.randomUUID();
+      
+      const parameters = {
+        goal: formData.goal,
+        mission: formData.mission,
+        example: formData.example,
+        rules: formData.rules,
+        use_websearch: formData.useWebsearch,
+      };
+
+      // Insert tracking record into experiment_requests table
+      if (user) {
+        const { error: trackingError } = await supabase
+          .from('experiment_requests')
+          .insert({
+            id: requestId,
+            user_id: user.id,
+            status: 'pending',
+            parameters,
+          });
+
+        if (trackingError) {
+          console.error("Error creating tracking record:", trackingError);
+          // Continue anyway - tracking is optional
+        }
+      }
+
+      // Send request to n8n with request_id
       const params = new URLSearchParams({
+        request_id: requestId,
         goal: formData.goal,
         mission: formData.mission,
         example: formData.example,
@@ -162,11 +193,18 @@ export function TriggerWorkflowForm({ collapsed = false, open, onOpenChange }: T
       });
 
       if (response.ok) {
-        toast.success("Workflow triggered successfully! Agents are now running.");
+        toast.success(`Workflow triggered! Tracking ID: ${requestId.slice(0, 8)}...`);
         setFormData({ goal: "", mission: "", example: "", rules: "", useWebsearch: false });
         setSelectedTemplateId("");
         setIsOpen(false);
       } else {
+        // Update tracking record to failed if we have a user
+        if (user) {
+          await supabase
+            .from('experiment_requests')
+            .update({ status: 'failed', error_message: 'Failed to trigger workflow' })
+            .eq('id', requestId);
+        }
         toast.error("Failed to trigger workflow");
       }
     } catch (error) {

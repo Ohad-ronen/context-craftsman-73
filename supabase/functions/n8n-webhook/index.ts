@@ -37,8 +37,11 @@ serve(async (req) => {
     const errors = [];
 
     for (const experiment of experiments) {
+      // Get request_id if provided (for tracking)
+      const requestId = experiment.request_id || null;
+      
       // Map n8n data to experiment fields
-      const experimentData = {
+      const experimentData: Record<string, any> = {
         name: experiment.name || `n8n Import ${new Date().toISOString()}`,
         goal: experiment.goal || '',
         mission: experiment.mission || '',
@@ -59,7 +62,12 @@ serve(async (req) => {
         use_websearch: experiment.use_websearch === true || experiment.use_websearch === 'true' || false,
       };
 
-      console.log("Inserting experiment:", experimentData.name);
+      // Link to request if request_id provided
+      if (requestId) {
+        experimentData.request_id = requestId;
+      }
+
+      console.log("Inserting experiment:", experimentData.name, "with request_id:", requestId);
 
       const { data, error } = await supabase
         .from('experiments')
@@ -70,9 +78,40 @@ serve(async (req) => {
       if (error) {
         console.error("Error inserting experiment:", error);
         errors.push({ name: experimentData.name, error: error.message });
+        
+        // Update tracking record to failed if request_id exists
+        if (requestId) {
+          await supabase
+            .from('experiment_requests')
+            .update({ 
+              status: 'failed', 
+              error_message: error.message,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', requestId);
+        }
       } else {
         console.log("Successfully inserted experiment:", data.id);
         results.push(data);
+        
+        // Update tracking record to completed if request_id exists
+        if (requestId) {
+          const { error: updateError } = await supabase
+            .from('experiment_requests')
+            .update({ 
+              status: 'completed', 
+              experiment_id: data.id,
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', requestId);
+          
+          if (updateError) {
+            console.error("Error updating tracking record:", updateError);
+          } else {
+            console.log("Updated tracking record:", requestId);
+          }
+        }
       }
     }
 

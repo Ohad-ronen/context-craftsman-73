@@ -352,17 +352,41 @@ async function executeTool(supabase: any, toolName: string, args: any, userId: s
     }
 
     case "trigger_experiment": {
-      // Return the prepared parameters - actual triggering happens client-side
+      // Generate a tracking UUID for this request
+      const requestId = crypto.randomUUID();
+      
+      const parameters = {
+        goal: args.goal,
+        mission: args.mission || "",
+        example: args.example || "",
+        rules: args.rules || "",
+        use_websearch: args.use_websearch || false
+      };
+
+      // Create tracking record if we have a userId
+      if (userId) {
+        const { error: trackingError } = await supabase
+          .from("experiment_requests")
+          .insert({
+            id: requestId,
+            user_id: userId,
+            status: "pending",
+            parameters
+          });
+
+        if (trackingError) {
+          console.error("Error creating tracking record:", trackingError);
+          // Continue anyway - tracking is optional
+        } else {
+          console.log("Created tracking record:", requestId);
+        }
+      }
+
       return {
         prepared: true,
-        parameters: {
-          goal: args.goal,
-          mission: args.mission || "",
-          example: args.example || "",
-          rules: args.rules || "",
-          use_websearch: args.use_websearch || false
-        },
-        message: "Experiment parameters prepared. The user can trigger the n8n workflow with these settings."
+        request_id: requestId,
+        parameters,
+        message: `Experiment parameters prepared with tracking ID: ${requestId.slice(0, 8)}... The user can trigger the n8n workflow with these settings.`
       };
     }
 

@@ -241,6 +241,57 @@ export type Database = {
           },
         ]
       }
+      experiment_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          experiment_id: string | null
+          id: string
+          parameters: Json
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          experiment_id?: string | null
+          id?: string
+          parameters?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          experiment_id?: string | null
+          id?: string
+          parameters?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_requests_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiment_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiment_tags: {
         Row: {
           created_at: string
@@ -334,6 +385,7 @@ export type Database = {
           notes: string | null
           output: string
           rating: number | null
+          request_id: string | null
           rules: string
           search_context: string
           search_terms: string
@@ -357,6 +409,7 @@ export type Database = {
           notes?: string | null
           output?: string
           rating?: number | null
+          request_id?: string | null
           rules?: string
           search_context?: string
           search_terms?: string
@@ -380,6 +433,7 @@ export type Database = {
           notes?: string | null
           output?: string
           rating?: number | null
+          request_id?: string | null
           rules?: string
           search_context?: string
           search_terms?: string
@@ -392,6 +446,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_requests"
             referencedColumns: ["id"]
           },
         ]
