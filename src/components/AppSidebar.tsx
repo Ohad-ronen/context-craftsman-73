@@ -17,7 +17,8 @@ import {
   ListTodo,
   PanelLeftClose,
   PanelLeft,
-  FileText
+  FileText,
+  Activity
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -51,7 +52,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates' | 'queue';
 
 interface AppSidebarProps {
   experimentCount: number;
@@ -82,6 +83,7 @@ const viewItems = [
   { id: 'compare' as ViewMode, title: 'Compare', icon: GitCompareArrows },
   { id: 'insights' as ViewMode, title: 'AI Insights', icon: Brain },
   { id: 'battle' as ViewMode, title: 'Output Battle', icon: Swords },
+  { id: 'queue' as ViewMode, title: 'Request Queue', icon: Activity },
 ];
 
 function ThemeToggleMenuItem() {
