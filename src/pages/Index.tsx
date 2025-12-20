@@ -29,6 +29,7 @@ import { TaskDialog } from '@/components/TaskDialog';
 import { TaskFormData } from '@/hooks/useTasks';
 import { TemplatesManager } from '@/components/TemplatesManager';
 import { PlatformAssistant } from '@/components/PlatformAssistant';
+import { RequestQueue } from '@/components/RequestQueue';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -42,7 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type View = 'list' | 'create' | 'detail' | 'edit';
-type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates';
+type ViewMode = 'cards' | 'table' | 'dashboard' | 'compare' | 'insights' | 'battle' | 'tasks' | 'templates' | 'queue';
 
 const Index = () => {
   const { experiments, isLoading, addExperiment, updateExperiment, deleteExperiment, getExperiment, createExperimentsRowByRow } = useExperiments();
@@ -274,7 +275,11 @@ const Index = () => {
           <main className="flex-1 p-6 overflow-auto">
             {view === 'list' && (
               <>
-                {viewMode === 'templates' ? (
+                {viewMode === 'queue' ? (
+                  <div className="max-w-2xl mx-auto">
+                    <RequestQueue onExperimentClick={handleViewExperiment} />
+                  </div>
+                ) : viewMode === 'templates' ? (
                   <TemplatesManager />
                 ) : viewMode === 'tasks' ? (
                   <TaskManager onViewExperiment={handleViewExperiment} />
