@@ -62,9 +62,19 @@ serve(async (req) => {
         use_websearch: experiment.use_websearch === true || experiment.use_websearch === 'true' || false,
       };
 
-      // Link to request if request_id provided
+      // Link to request if request_id provided - verify it exists first
       if (requestId) {
-        experimentData.request_id = requestId;
+        const { data: requestExists } = await supabase
+          .from('experiment_requests')
+          .select('id')
+          .eq('id', requestId)
+          .single();
+        
+        if (requestExists) {
+          experimentData.request_id = requestId;
+        } else {
+          console.log("request_id not found in experiment_requests, skipping link:", requestId);
+        }
       }
 
       console.log("Inserting experiment:", experimentData.name, "with request_id:", requestId);
