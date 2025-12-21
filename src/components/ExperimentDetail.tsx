@@ -4,7 +4,9 @@ import { useAnnotations } from '@/hooks/useAnnotations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
-import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags, Globe } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, ArrowDown, Tags, Globe, Link, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { AIEvaluation } from './AIEvaluation';
 import { AnnotatableText, AnnotatableJson, AnnotationsSummary } from './annotations';
 import { cn } from '@/lib/utils';
@@ -51,6 +53,9 @@ export function ExperimentDetail({
   onRemoveTag,
   onCreateTag
 }: ExperimentDetailProps) {
+  const { toast } = useToast();
+  const [copiedRequestId, setCopiedRequestId] = useState(false);
+  
   const {
     annotations,
     createAnnotation,
@@ -58,6 +63,15 @@ export function ExperimentDetail({
     deleteAnnotation,
     getAnnotationsForField,
   } = useAnnotations(experiment.id);
+
+  const copyRequestId = async () => {
+    if (experiment.request_id) {
+      await navigator.clipboard.writeText(experiment.request_id);
+      setCopiedRequestId(true);
+      toast({ title: 'Copied!', description: 'Request ID copied to clipboard' });
+      setTimeout(() => setCopiedRequestId(false), 2000);
+    }
+  };
 
   const handleEvaluationComplete = async (score: number, notes: string) => {
     if (onUpdate) {
@@ -100,6 +114,22 @@ export function ExperimentDetail({
                 <div className="flex items-center gap-1.5 text-blue-500">
                   <Globe className="w-4 h-4" />
                   <span>Web Search</span>
+                </div>
+              )}
+              {experiment.request_id && (
+                <div className="flex items-center gap-1.5">
+                  <Link className="w-4 h-4 text-violet-500" />
+                  <button 
+                    onClick={copyRequestId}
+                    className="flex items-center gap-1.5 text-violet-500 hover:text-violet-400 transition-colors font-mono text-xs bg-violet-500/10 px-2 py-0.5 rounded"
+                  >
+                    <span>{experiment.request_id.slice(0, 8)}...</span>
+                    {copiedRequestId ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
                 </div>
               )}
             </div>
