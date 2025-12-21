@@ -17,7 +17,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Lato',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -30,7 +30,7 @@ export default {
   				'sans-serif'
   			],
   			mono: [
-  				'Fira Code',
+  				'Space Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
@@ -45,7 +45,7 @@ export default {
   				'sans-serif'
   			],
   			serif: [
-  				'EB Garamond',
+  				'Lora',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -173,7 +173,7 @@ export default {
   					transform: 'scale(1)'
   				}
   			},
-  			'wiggle': {
+  			wiggle: {
   				'0%, 100%': {
   					transform: 'rotate(-3deg)'
   				},
@@ -189,7 +189,7 @@ export default {
   					opacity: '0.7'
   				}
   			},
-  			'shimmer': {
+  			shimmer: {
   				'0%': {
   					transform: 'translateX(-100%)'
   				},
@@ -197,7 +197,7 @@ export default {
   					transform: 'translateX(100%)'
   				}
   			},
-  			'float': {
+  			float: {
   				'0%, 100%': {
   					transform: 'translateY(0)'
   				},
@@ -205,7 +205,7 @@ export default {
   					transform: 'translateY(-5px)'
   				}
   			},
-  			'glow': {
+  			glow: {
   				'0%, 100%': {
   					boxShadow: '0 0 5px hsl(var(--primary) / 0.3)'
   				},
@@ -287,11 +287,11 @@ export default {
   			'slide-up': 'slide-up 0.5s ease-out forwards',
   			'scale-in': 'scale-in 0.3s ease-out forwards',
   			'bounce-in': 'bounce-in 0.5s ease-out forwards',
-  			'wiggle': 'wiggle 0.3s ease-in-out',
+  			wiggle: 'wiggle 0.3s ease-in-out',
   			'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
-  			'shimmer': 'shimmer 2s linear infinite',
-  			'float': 'float 3s ease-in-out infinite',
-  			'glow': 'glow 2s ease-in-out infinite',
+  			shimmer: 'shimmer 2s linear infinite',
+  			float: 'float 3s ease-in-out infinite',
+  			glow: 'glow 2s ease-in-out infinite',
   			'count-up': 'count-up 0.5s ease-out forwards',
   			'spin-slow': 'spin-slow 3s linear infinite',
   			'slide-in-left': 'slide-in-left 0.2s ease-out forwards',
