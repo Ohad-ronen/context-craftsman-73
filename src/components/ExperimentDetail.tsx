@@ -170,6 +170,42 @@ export function ExperimentDetail({
         </Card>
       )}
 
+      {/* Request ID Section */}
+      {experiment.request_id && (
+        <Card className="glass-card border-l-4 border-l-violet-500/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-3 text-base">
+              <div className="p-2 rounded-lg bg-violet-500/10">
+                <Link className="w-4 h-4 text-violet-500" />
+              </div>
+              <span>Request ID</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <code className="flex-1 bg-violet-500/10 text-violet-400 px-4 py-2 rounded-lg font-mono text-sm">
+                {experiment.request_id}
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyRequestId}
+                className="shrink-0"
+              >
+                {copiedRequestId ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              This experiment was created via the automation webhook
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Annotations Summary */}
       {annotations.length > 0 && (
         <AnnotationsSummary
