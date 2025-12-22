@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
 import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Tags, Globe, Link, Copy, Check } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { ExperimentListPanel } from './experiment/ExperimentListPanel';
 import { useToast } from '@/hooks/use-toast';
 import { AIEvaluation } from './AIEvaluation';
 import { AnnotatableText, AnnotatableJson, AnnotationsSummary } from './annotations';
@@ -18,10 +19,13 @@ import { LayoutToolbar } from './experiment/LayoutToolbar';
 
 interface ExperimentDetailProps {
   experiment: Experiment;
+  experiments?: Experiment[];
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onUpdate?: (id: string, data: { rating?: number; notes?: string }) => Promise<void>;
+  onNavigateToExperiment?: (id: string) => void;
+  getTagsForExperiment?: (experimentId: string) => Tag[];
   tags?: Tag[];
   experimentTags?: Tag[];
   onAddTag?: (tagId: string) => Promise<boolean>;
@@ -46,11 +50,14 @@ const sectionConfig: Record<string, { label: string; icon: typeof Target; color:
 };
 
 export function ExperimentDetail({ 
-  experiment, 
+  experiment,
+  experiments = [],
   onBack, 
   onEdit, 
   onDelete, 
   onUpdate,
+  onNavigateToExperiment,
+  getTagsForExperiment,
   tags = [],
   experimentTags = [],
   onAddTag,
@@ -59,6 +66,14 @@ export function ExperimentDetail({
 }: ExperimentDetailProps) {
   const { toast } = useToast();
   const [copiedRequestId, setCopiedRequestId] = useState(false);
+  const [isListPanelCollapsed, setIsListPanelCollapsed] = useState(() => {
+    const stored = localStorage.getItem('experiment-list-panel-collapsed');
+    return stored ? JSON.parse(stored) : false;
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('experiment-list-panel-collapsed', JSON.stringify(isListPanelCollapsed));
+  }, [isListPanelCollapsed]);
   
   const {
     annotations,
@@ -318,78 +333,95 @@ export function ExperimentDetail({
   const leftSections = getLeftColumnSections();
   const rightSections = getRightColumnSections();
 
+  const showListPanel = experiments.length > 0 && onNavigateToExperiment && getTagsForExperiment;
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{experiment.name}</h1>
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4" />
-                <span>Created {format(new Date(experiment.created_at), 'MMM d, yyyy')}</span>
+    <div className="flex gap-6 animate-fade-in">
+      {/* Experiment List Panel */}
+      {showListPanel && (
+        <ExperimentListPanel
+          experiments={experiments}
+          currentExperimentId={experiment.id}
+          onSelectExperiment={onNavigateToExperiment}
+          getTagsForExperiment={getTagsForExperiment}
+          isCollapsed={isListPanelCollapsed}
+          onToggleCollapse={() => setIsListPanelCollapsed(!isListPanelCollapsed)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 space-y-6 min-w-0">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{experiment.name}</h1>
+              <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  <span>Created {format(new Date(experiment.created_at), 'MMM d, yyyy')}</span>
+                </div>
+                {experiment.rating && (
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
+                    <span>{experiment.rating}/5</span>
+                  </div>
+                )}
+                {experiment.use_websearch && (
+                  <div className="flex items-center gap-1.5 text-blue-500">
+                    <Globe className="w-4 h-4" />
+                    <span>Web Search</span>
+                  </div>
+                )}
+                {experiment.request_id && (
+                  <div className="flex items-center gap-1.5">
+                    <Link className="w-4 h-4 text-violet-500" />
+                    <button 
+                      onClick={copyRequestId}
+                      className="flex items-center gap-1.5 text-violet-500 hover:text-violet-400 transition-colors font-mono text-xs bg-violet-500/10 px-2 py-0.5 rounded"
+                    >
+                      <span>{experiment.request_id.slice(0, 8)}...</span>
+                      {copiedRequestId ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-              {experiment.rating && (
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-step-prompt fill-step-prompt" />
-                  <span>{experiment.rating}/5</span>
-                </div>
-              )}
-              {experiment.use_websearch && (
-                <div className="flex items-center gap-1.5 text-blue-500">
-                  <Globe className="w-4 h-4" />
-                  <span>Web Search</span>
-                </div>
-              )}
-              {experiment.request_id && (
-                <div className="flex items-center gap-1.5">
-                  <Link className="w-4 h-4 text-violet-500" />
-                  <button 
-                    onClick={copyRequestId}
-                    className="flex items-center gap-1.5 text-violet-500 hover:text-violet-400 transition-colors font-mono text-xs bg-violet-500/10 px-2 py-0.5 rounded"
-                  >
-                    <span>{experiment.request_id.slice(0, 8)}...</span>
-                    {copiedRequestId ? (
-                      <Check className="w-3 h-3" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <LayoutToolbar
+              sections={sections}
+              onToggleSection={toggleSection}
+              onResetLayout={resetLayout}
+              onMoveSection={moveSection}
+            />
+            <Button variant="outline" onClick={onEdit}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <Button variant="destructive" onClick={onDelete}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <LayoutToolbar
-            sections={sections}
-            onToggleSection={toggleSection}
-            onResetLayout={resetLayout}
-            onMoveSection={moveSection}
-          />
-          <Button variant="outline" onClick={onEdit}>
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
-          <Button variant="destructive" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
-        </div>
-      </div>
 
-      {/* Two-Column Canvas */}
-      <ExperimentCanvas
-        leftColumnIds={leftSections.map(s => s.id)}
-        rightColumnIds={rightSections.map(s => s.id)}
-        renderSection={renderSection}
-        onMoveSection={moveSection}
-        onReorderWithinColumn={reorderWithinColumn}
-      />
+        {/* Two-Column Canvas */}
+        <ExperimentCanvas
+          leftColumnIds={leftSections.map(s => s.id)}
+          rightColumnIds={rightSections.map(s => s.id)}
+          renderSection={renderSection}
+          onMoveSection={moveSection}
+          onReorderWithinColumn={reorderWithinColumn}
+        />
+      </div>
     </div>
   );
 }

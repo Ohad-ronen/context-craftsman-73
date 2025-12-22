@@ -354,22 +354,23 @@ const Index = () => {
             )}
 
             {view === 'detail' && selectedExperiment && (
-              <div className="max-w-4xl mx-auto">
-                <ExperimentDetail
-                  experiment={selectedExperiment}
-                  onBack={handleBack}
-                  onEdit={handleEditExperiment}
-                  onDelete={() => setDeleteDialogOpen(true)}
-                  onUpdate={async (id, data) => {
-                    await updateExperiment(id, data);
-                  }}
-                  tags={tags}
-                  experimentTags={getTagsForExperiment(selectedExperiment.id)}
-                  onAddTag={(tagId) => addTagToExperiment(selectedExperiment.id, tagId)}
-                  onRemoveTag={(tagId) => removeTagFromExperiment(selectedExperiment.id, tagId)}
-                  onCreateTag={createTag}
-                />
-              </div>
+              <ExperimentDetail
+                experiment={selectedExperiment}
+                experiments={experiments}
+                onBack={handleBack}
+                onEdit={handleEditExperiment}
+                onDelete={() => setDeleteDialogOpen(true)}
+                onUpdate={async (id, data) => {
+                  await updateExperiment(id, data);
+                }}
+                onNavigateToExperiment={handleViewExperiment}
+                getTagsForExperiment={getTagsForExperiment}
+                tags={tags}
+                experimentTags={getTagsForExperiment(selectedExperiment.id)}
+                onAddTag={(tagId) => addTagToExperiment(selectedExperiment.id, tagId)}
+                onRemoveTag={(tagId) => removeTagFromExperiment(selectedExperiment.id, tagId)}
+                onCreateTag={createTag}
+              />
             )}
           </main>
         </div>
