@@ -72,7 +72,7 @@ export function ExperimentListPanel({
   }
 
   return (
-    <div className="w-72 border-r bg-background/50 flex flex-col h-full">
+    <div className="w-72 border-r bg-background/50 flex flex-col h-[calc(100vh-120px)] sticky top-0 shrink-0">
       {/* Header */}
       <div className="p-3 border-b space-y-3">
         <div className="flex items-center justify-between">
