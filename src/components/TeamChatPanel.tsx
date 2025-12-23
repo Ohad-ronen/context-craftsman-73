@@ -305,6 +305,40 @@ export function TeamChatPanel({ isOpen, onToggle, experiments, onViewExperiment 
           )}
         </div>
 
+        {/* Recent Experiment Activity */}
+        {experiments.length > 0 && (
+          <div className="px-4 py-2 border-b border-border/30 bg-muted/30">
+            <p className="text-[10px] uppercase font-medium text-muted-foreground mb-2">Recent Activity</p>
+            <div className="space-y-1.5 max-h-24 overflow-y-auto">
+              {experiments.slice(0, 3).map((exp) => {
+                const userName = exp.profile?.display_name || exp.profile?.email?.split('@')[0];
+                return (
+                  <button
+                    key={exp.id}
+                    onClick={() => onViewExperiment?.(exp.id)}
+                    className="w-full flex items-center gap-2 p-1.5 rounded hover:bg-muted transition-colors text-left group"
+                  >
+                    <div className="p-1 rounded bg-emerald-500/10">
+                      <FlaskConical className="h-3 w-3 text-emerald-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs truncate group-hover:text-primary transition-colors">
+                        {userName ? (
+                          <><span className="font-medium">{userName}</span> ran </>
+                        ) : null}
+                        "{exp.name}"
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(exp.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Messages */}
         <ScrollArea className="flex-1 p-4 overflow-x-hidden" ref={scrollRef}>
           {isLoading ? (

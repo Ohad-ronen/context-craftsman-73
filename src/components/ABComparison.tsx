@@ -36,7 +36,9 @@ const COMPARISON_FIELDS: ComparisonField[] = [
   { key: 'notes', label: 'Notes', type: 'multiline' },
 ];
 
-function getDiffStatus(valA: string | number | boolean | null | undefined, valB: string | number | boolean | null | undefined): 'same' | 'different' | 'only-a' | 'only-b' {
+type ComparableValue = string | number | boolean | null | undefined;
+
+function getDiffStatus(valA: ComparableValue, valB: ComparableValue): 'same' | 'different' | 'only-a' | 'only-b' {
   const aEmpty = valA === null || valA === undefined || valA === '';
   const bEmpty = valB === null || valB === undefined || valB === '';
   
@@ -66,7 +68,7 @@ function RatingStars({ rating }: { rating: number | null | undefined }) {
 }
 
 function FieldValue({ value, type, diffStatus }: { 
-  value: string | number | boolean | null | undefined; 
+  value: ComparableValue; 
   type: 'text' | 'rating' | 'multiline' | 'boolean';
   diffStatus: 'same' | 'different' | 'only-a' | 'only-b';
 }) {
@@ -137,7 +139,9 @@ export function ABComparison({ experiments, onBack }: ABComparisonProps) {
     let different = 0;
     
     COMPARISON_FIELDS.forEach(field => {
-      const status = getDiffStatus(expA[field.key], expB[field.key]);
+      const valA = expA[field.key] as ComparableValue;
+      const valB = expB[field.key] as ComparableValue;
+      const status = getDiffStatus(valA, valB);
       if (status === 'same') same++;
       else different++;
     });
@@ -235,8 +239,8 @@ export function ABComparison({ experiments, onBack }: ABComparisonProps) {
         <ScrollArea className="h-[calc(100vh-320px)]">
           <div className="space-y-6 pr-4">
             {COMPARISON_FIELDS.map(field => {
-              const valA = expA[field.key];
-              const valB = expB[field.key];
+              const valA = expA[field.key] as ComparableValue;
+              const valB = expB[field.key] as ComparableValue;
               const diffStatus = getDiffStatus(valA, valB);
               
               return (

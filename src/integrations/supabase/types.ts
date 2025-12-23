@@ -391,6 +391,7 @@ export type Database = {
           search_terms: string
           updated_at: string
           use_websearch: boolean
+          user_id: string | null
         }
         Insert: {
           agentic_prompt?: string
@@ -415,6 +416,7 @@ export type Database = {
           search_terms?: string
           updated_at?: string
           use_websearch?: boolean
+          user_id?: string | null
         }
         Update: {
           agentic_prompt?: string
@@ -439,6 +441,7 @@ export type Database = {
           search_terms?: string
           updated_at?: string
           use_websearch?: boolean
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -453,6 +456,13 @@ export type Database = {
             columns: ["request_id"]
             isOneToOne: false
             referencedRelation: "experiment_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

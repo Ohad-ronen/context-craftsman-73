@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface ExperimentProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+}
+
 export interface Experiment {
   id: string;
   name: string;
@@ -23,8 +30,10 @@ export interface Experiment {
   folder_id: string | null;
   request_id: string | null;
   use_websearch: boolean;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
+  profile?: ExperimentProfile | null;
 }
 
 export interface ExperimentFormData {
@@ -55,7 +64,10 @@ export function useExperiments() {
     try {
       const { data, error } = await supabase
         .from('experiments')
-        .select('*')
+        .select(`
+          *,
+          profile:profiles!experiments_user_id_fkey(id, display_name, email, avatar_url)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -94,6 +106,9 @@ export function useExperiments() {
 
   const addExperiment = async (data: ExperimentFormData): Promise<Experiment | null> => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data: newExperiment, error } = await supabase
         .from('experiments')
         .insert({
@@ -113,8 +128,12 @@ export function useExperiments() {
           rating: data.rating || null,
           notes: data.notes || null,
           use_websearch: data.use_websearch ?? false,
+          user_id: user?.id || null,
         })
-        .select()
+        .select(`
+          *,
+          profile:profiles!experiments_user_id_fkey(id, display_name, email, avatar_url)
+        `)
         .single();
 
       if (error) throw error;
@@ -206,6 +225,9 @@ export function useExperiments() {
   ): Promise<{ success: number; failed: number }> => {
     let success = 0;
     let failed = 0;
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
 
     for (let i = 0; i < data.length; i++) {
       const exp = data[i];
@@ -229,6 +251,7 @@ export function useExperiments() {
             rating: exp.rating || null,
             notes: exp.notes || null,
             use_websearch: exp.use_websearch ?? false,
+            user_id: user?.id || null,
           });
 
         if (error) {
