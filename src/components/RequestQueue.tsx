@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Clock, 
   CheckCircle2, 
@@ -65,9 +66,25 @@ function RequestCard({
   const config = statusConfig[request.status];
   const StatusIcon = config.icon;
   const goal = request.parameters?.goal || 'Untitled Request';
+  const userName = request.profile?.display_name || request.profile?.email?.split('@')[0];
 
   return (
     <div className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+      {/* User info */}
+      {userName && (
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/50">
+          <Avatar className="h-5 w-5">
+            <AvatarImage src={request.profile?.avatar_url || undefined} />
+            <AvatarFallback className="text-[10px]">
+              {userName[0]?.toUpperCase() || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">{userName}</span> ran this experiment
+          </span>
+        </div>
+      )}
+      
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm truncate">{goal}</p>

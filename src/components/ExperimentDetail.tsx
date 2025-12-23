@@ -5,7 +5,8 @@ import { useExperimentLayout } from '@/hooks/useExperimentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagInput } from '@/components/TagInput';
-import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Tags, Globe, Link, Copy, Check } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ArrowLeft, Edit, Trash2, Star, Clock, Target, Compass, BookOpen, Sparkles, ScrollText, Layout, Database, Search, Brain, FileOutput, Tags, Globe, Link, Copy, Check, User } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 import { ExperimentListPanel } from './experiment/ExperimentListPanel';
 import { useToast } from '@/hooks/use-toast';
@@ -359,7 +360,18 @@ export function ExperimentDetail({
             </Button>
             <div>
               <h1 className="text-2xl font-bold">{experiment.name}</h1>
-              <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
+                {experiment.profile && (
+                  <div className="flex items-center gap-1.5">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={experiment.profile.avatar_url || undefined} />
+                      <AvatarFallback className="text-[10px]">
+                        {experiment.profile.display_name?.[0]?.toUpperCase() || experiment.profile.email?.[0]?.toUpperCase() || '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>Ran by <span className="font-medium text-foreground">{experiment.profile.display_name || experiment.profile.email?.split('@')[0] || 'Unknown'}</span></span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
                   <span>Created {format(new Date(experiment.created_at), 'MMM d, yyyy')}</span>

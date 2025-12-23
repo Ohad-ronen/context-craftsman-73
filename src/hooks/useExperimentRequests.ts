@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
+export interface RequestProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+}
+
 export interface ExperimentRequest {
   id: string;
   user_id: string | null;
@@ -19,6 +26,7 @@ export interface ExperimentRequest {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  profile?: RequestProfile | null;
 }
 
 export function useExperimentRequests() {
@@ -31,7 +39,10 @@ export function useExperimentRequests() {
       
       const { data, error } = await supabase
         .from('experiment_requests')
-        .select('*')
+        .select(`
+          *,
+          profile:profiles!experiment_requests_user_id_fkey(id, display_name, email, avatar_url)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
