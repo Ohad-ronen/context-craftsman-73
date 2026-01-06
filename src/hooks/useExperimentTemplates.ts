@@ -43,16 +43,36 @@ export const useExperimentTemplates = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data: templatesData, error: templatesError } = await supabase
         .from('experiment_templates')
-        .select(`
-          *,
-          profile:profiles!experiment_templates_user_id_fkey(display_name, avatar_url)
-        `)
+        .select('*')
         .order('name', { ascending: true });
 
-      if (error) throw error;
-      setTemplates((data as ExperimentTemplate[]) || []);
+      if (templatesError) throw templatesError;
+
+      // Get unique user IDs to fetch profiles
+      const userIds = [...new Set(templatesData?.map(t => t.user_id).filter(Boolean) as string[])];
+      
+      let profilesMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', userIds);
+        
+        profilesMap = (profilesData || []).reduce((acc, p) => {
+          acc[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+          return acc;
+        }, {} as Record<string, { display_name: string | null; avatar_url: string | null }>);
+      }
+
+      const templatesWithProfiles: ExperimentTemplate[] = (templatesData || []).map(t => ({
+        ...t,
+        profile: t.user_id ? profilesMap[t.user_id] || null : null,
+      }));
+
+      setTemplates(templatesWithProfiles);
     } catch (error) {
       console.error('Error fetching templates:', error);
       toast({
