@@ -14,6 +14,10 @@ export interface ExperimentTemplate {
   user_id: string | null;
   created_at: string;
   updated_at: string;
+  profile?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface TemplateFormData {
@@ -41,7 +45,10 @@ export const useExperimentTemplates = () => {
     try {
       const { data, error } = await supabase
         .from('experiment_templates')
-        .select('*')
+        .select(`
+          *,
+          profile:profiles!experiment_templates_user_id_fkey(display_name, avatar_url)
+        `)
         .order('name', { ascending: true });
 
       if (error) throw error;

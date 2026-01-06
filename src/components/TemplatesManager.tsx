@@ -24,7 +24,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, FileText, Search, Globe } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileText, Search, Globe, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -211,6 +212,17 @@ export function TemplatesManager() {
                     {template.goal}
                   </p>
                 )}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={template.profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-[10px]">
+                      {template.profile?.display_name?.[0]?.toUpperCase() || <User className="w-3 h-3" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="truncate">
+                    {template.profile?.display_name || 'Unknown'}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     Updated {format(new Date(template.updated_at), 'MMM d, yyyy')}
